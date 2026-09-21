@@ -1,4 +1,4 @@
-from commerce_pilot.graph import build_graph
+from eco_agent_os.commerce_pilot.graph import build_graph
 
 
 def test_sales_analysis_route():
