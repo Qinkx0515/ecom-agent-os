@@ -10,7 +10,7 @@ from decimal import Decimal
 
 from sqlalchemy import select
 
-from database.models import (
+from ecom_agent_os.database.models import (
     Order,
     OrderItem,
     Product,
@@ -18,7 +18,7 @@ from database.models import (
     TrafficDaily,
     User,
 )
-from database.session import SessionLocal
+from ecom_agent_os.database.session import SessionLocal
 
 
 random.seed(42)

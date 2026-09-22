@@ -1,6 +1,6 @@
 import pytest
 
-from eco_agent_os.commerce_pilot.sql.validator import (
+from ecom_agent_os.commerce_pilot.sql.validator import (
     SQLValidationError,
     validate_sql,
 )

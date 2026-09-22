@@ -1,4 +1,4 @@
-from commerce_pilot.graph import build_graph
+from ecom_agent_os.commerce_pilot.graph import build_graph
 
 
 def main():

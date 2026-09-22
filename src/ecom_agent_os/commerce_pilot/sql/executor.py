@@ -4,9 +4,9 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from database.session import engine
+from ecom_agent_os.database.session import engine
 
-from commerce_pilot.sql.validator import (
+from ecom_agent_os.commerce_pilot.sql.validator import (
     MAX_RESULT_ROWS,
     SQLValidationError,
     validate_sql,

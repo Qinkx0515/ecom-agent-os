@@ -1,5 +1,5 @@
-from database.models import Base
-from database.session import engine
+from ecom_agent_os.database.models import Base
+from ecom_agent_os.database.session import engine
 
 
 def main():

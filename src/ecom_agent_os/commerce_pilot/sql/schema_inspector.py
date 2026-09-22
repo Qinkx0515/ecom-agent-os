@@ -1,6 +1,6 @@
 from sqlalchemy import inspect
 
-from database.session import engine
+from ecom_agent_os.database.session import engine
 
 
 ALLOWED_TABLES = {

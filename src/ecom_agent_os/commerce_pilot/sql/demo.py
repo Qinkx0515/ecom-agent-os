@@ -1,8 +1,8 @@
-from commerce_pilot.sql.executor import (
+from ecom_agent_os.commerce_pilot.sql.executor import (
     SQLExecutionError,
     execute_safe_sql,
 )
-from commerce_pilot.sql.validator import (
+from ecom_agent_os.commerce_pilot.sql.validator import (
     SQLValidationError,
 )
 

@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database.config import DATABASE_URL
+from ecom_agent_os.database.config import DATABASE_URL
 
 
 engine = create_engine(

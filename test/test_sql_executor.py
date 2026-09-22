@@ -1,4 +1,4 @@
-from commerce_pilot.sql.executor import (
+from ecom_agent_os.commerce_pilot.sql.executor import (
     execute_safe_sql,
 )
 
