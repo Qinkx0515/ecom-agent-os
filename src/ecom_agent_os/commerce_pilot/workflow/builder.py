@@ -22,6 +22,7 @@ from ecom_agent_os.commerce_pilot.workflow.state import (
 
 def build_commerce_graph(
     deps: CommerceDependencies | None = None,
+    checkpointer=None,
 ):
 
     if deps is None:
@@ -135,7 +136,9 @@ def build_commerce_graph(
         END,
     )
 
-    return builder.compile()
+    return builder.compile(
+        checkpointer=checkpointer
+    )
 
 
 # if __name__ == "__main__":

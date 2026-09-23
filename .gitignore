@@ -13,6 +13,8 @@ build/
 dist/
 *.egg-info/
 
+data/checkpoints/
+
 # 编辑器 & 系统文件
 .DS_Store
 .idea/
