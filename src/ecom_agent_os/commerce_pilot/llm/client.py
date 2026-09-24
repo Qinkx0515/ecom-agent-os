@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from langfuse.openai import OpenAI
 
 
 load_dotenv()

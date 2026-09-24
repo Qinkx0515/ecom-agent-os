@@ -9,7 +9,7 @@ from ecom_agent_os.commerce_pilot.llm.client import (
     get_llm_client,
     get_model_name,
 )
-
+from langfuse import observe
 
 class ActionPlanningError(
     RuntimeError
@@ -66,6 +66,9 @@ Unsupported example:
 """
 
 
+@observe(
+    name="action.plan"
+)
 def generate_action_plan(
     user_request: str,
 ) -> ActionPlan:

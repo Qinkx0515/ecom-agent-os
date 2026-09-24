@@ -17,6 +17,10 @@ from ecom_agent_os.commerce_pilot.workflow.dependencies import (
 from ecom_agent_os.commerce_pilot.workflow.state import (
     CommerceGraphState,
 )
+from langfuse import (
+    get_client,
+    observe,
+)
 
 class CommerceNodes:
 
@@ -50,7 +54,9 @@ class CommerceNodes:
                 "context_loaded",
         }
 
-
+    @observe(
+        name="workflow.generate_sql"
+    )
     def generate_sql(
         self,
         state: CommerceGraphState,
@@ -62,6 +68,18 @@ class CommerceNodes:
                 0,
             )
             + 1
+        )
+
+        langfuse = get_client()
+
+        langfuse.update_current_span(
+            metadata={
+                "attempt_number":
+                    attempt_number,
+
+                "is_retry":
+                    attempt_number > 1,
+            }
         )
 
         previous_sql = None
@@ -252,6 +270,18 @@ class CommerceNodes:
         ) as exc:
 
             error = str(exc)
+
+            langfuse = get_client()
+
+            langfuse.update_current_span(
+                metadata={
+                    "execution_ok":
+                        False,
+
+                    "error_type":
+                        type(exc).__name__,
+                }
+            )
 
             return {
                 "execution_ok":

@@ -9,7 +9,7 @@ from ecom_agent_os.commerce_pilot.llm.client import (
 from ecom_agent_os.commerce_pilot.supervisor.models import (
     SupervisorDecision,
 )
-
+from langfuse import observe
 
 class SupervisorRoutingError(
     RuntimeError
@@ -65,6 +65,9 @@ Required format:
 """
 
 
+@observe(
+    name="supervisor.route"
+)
 def route_request(
     request: str,
 ) -> SupervisorDecision:

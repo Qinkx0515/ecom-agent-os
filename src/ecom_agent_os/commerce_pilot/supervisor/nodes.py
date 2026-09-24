@@ -13,6 +13,10 @@ from ecom_agent_os.commerce_pilot.supervisor.state import (
 from ecom_agent_os.commerce_pilot.workflow.builder import (
     build_commerce_graph,
 )
+from langfuse import (
+    get_client,
+    observe,
+)
 
 
 class SupervisorNodes:
@@ -43,11 +47,12 @@ class SupervisorNodes:
             )
         )
 
-
-
+    @observe(
+        name="workflow.supervisor"
+    )
     def supervisor(
-        self,
-        state: SupervisorState,
+            self,
+            state: SupervisorState,
     ) -> SupervisorState:
 
         try:
@@ -59,6 +64,17 @@ class SupervisorNodes:
                         "request"
                     ]
                 )
+            )
+            langfuse = get_client()
+
+            langfuse.update_current_span(
+                metadata={
+                    "route":
+                        decision.route,
+
+                    "confidence":
+                        decision.confidence,
+                }
             )
 
         except SupervisorRoutingError as exc:

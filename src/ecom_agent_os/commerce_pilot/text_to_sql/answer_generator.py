@@ -13,7 +13,7 @@ from ecom_agent_os.commerce_pilot.llm.client import (
 from ecom_agent_os.commerce_pilot.sql.executor import (
     SQLExecutionResult,
 )
-
+from langfuse import observe
 
 class AnswerGenerationError(
     RuntimeError
@@ -53,6 +53,9 @@ def serialize_rows(
     ]
 
 
+@observe(
+    name="answer.generate"
+)
 def generate_answer(
     question: str,
     result: SQLExecutionResult,

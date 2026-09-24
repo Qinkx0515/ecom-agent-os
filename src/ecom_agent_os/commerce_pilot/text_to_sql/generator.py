@@ -13,7 +13,7 @@ from ecom_agent_os.commerce_pilot.text_to_sql.prompts import (
     SQL_SYSTEM_PROMPT,
     build_sql_prompt,
 )
-
+from langfuse import observe
 
 class LLMGenerationError(
     RuntimeError
@@ -21,6 +21,9 @@ class LLMGenerationError(
     pass
 
 
+@observe(
+    name="text_to_sql.generate"
+)
 def generate_sql(
     question: str,
     schema: str,

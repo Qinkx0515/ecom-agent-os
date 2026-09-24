@@ -12,6 +12,13 @@ from ecom_agent_os.commerce_pilot.sql.validator import (
     validate_sql,
 )
 
+import time
+
+from langfuse import (
+    get_client,
+    observe,
+)
+
 @dataclass
 class SQLExecutionResult:
 
@@ -28,10 +35,19 @@ class SQLExecutionError(
     pass
 
 
+@observe(
+    name="sql.execute",
+    capture_input=False,
+    capture_output=False,
+)
 def execute_safe_sql(
     sql: str,
     max_rows: int = MAX_RESULT_ROWS,
 ) -> SQLExecutionResult:
+
+    start = (
+        time.perf_counter()
+    )
 
     validation = validate_sql(
         sql
@@ -113,6 +129,45 @@ def execute_safe_sql(
             f"failed: {exc}"
         ) from exc
 
+
+    latency_ms = (
+        time.perf_counter()
+        - start
+    ) * 1000
+
+
+    langfuse = get_client()
+
+
+    langfuse.update_current_span(
+        metadata={
+            "tables":
+                sorted(
+                    validation.tables
+                ),
+
+            "row_count":
+                len(rows),
+
+            "truncated":
+                truncated,
+
+            "latency_ms":
+                round(
+                    latency_ms,
+                    2,
+                ),
+        },
+
+        output={
+            "row_count":
+                len(rows),
+
+            "truncated":
+                truncated,
+        },
+    )
+
     return SQLExecutionResult(
         columns=columns,
         rows=[
@@ -123,3 +178,4 @@ def execute_safe_sql(
         truncated=truncated,
         sql=safe_sql,
     )
+

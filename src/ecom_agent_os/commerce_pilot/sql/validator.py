@@ -3,7 +3,10 @@ from dataclasses import dataclass
 import sqlglot
 from sqlglot import exp
 from sqlglot.errors import ParseError
-
+from langfuse import (
+    get_client,
+    observe,
+)
 ALLOWED_TABLES = {
     "users",
     "products",
@@ -278,6 +281,10 @@ def extract_cte_names(
     return cte_names
 
 
+@observe(
+    name="sql.validate",
+    capture_input=False,
+)
 def validate_sql(
     sql: str,
 ) -> ValidationResult:
@@ -296,6 +303,23 @@ def validate_sql(
 
     tables = extract_tables(
         tree
+    )
+
+    langfuse = get_client()
+
+    langfuse.update_current_span(
+        metadata={
+            "tables":
+                sorted(
+                    tables
+                ),
+
+            "statement_count":
+                1,
+
+            "read_only":
+                True,
+        }
     )
 
     if not tables:
