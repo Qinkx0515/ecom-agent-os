@@ -25,3 +25,7 @@ data/checkpoints/
 .env
 .env.local
 .env.*.local
+
+#报告
+evals/reports/
+

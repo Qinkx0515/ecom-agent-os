@@ -1,0 +1,15 @@
+{"id":"route_001","question":"最近30天耳机品类GMV是多少？","expected_route":"analytics","difficulty":"easy"}
+{"id":"route_002","question":"最近30天的退款金额是多少？","expected_route":"analytics","difficulty":"easy"}
+{"id":"route_003","question":"哪个商品品类销量最高？","expected_route":"analytics","difficulty":"easy"}
+{"id":"route_004","question":"比较最近30天和前30天耳机的GMV变化","expected_route":"analytics","difficulty":"medium"}
+{"id":"route_005","question":"耳机最近30天的访客量和转化率分别是多少？","expected_route":"analytics","difficulty":"medium"}
+{"id":"route_006","question":"最近一个月退款率有没有明显上升？","expected_route":"analytics","difficulty":"medium"}
+{"id":"route_007","question":"把SKU-0001的价格调整为299元","expected_route":"action","difficulty":"easy"}
+{"id":"route_008","question":"将SKU-0010售价设置成199元","expected_route":"action","difficulty":"easy"}
+{"id":"route_009","question":"把SKU-0020价格从现在的价格修改为399元","expected_route":"action","difficulty":"easy"}
+{"id":"route_010","question":"把所有商品统一降价10%","expected_route":"action","difficulty":"medium"}
+{"id":"route_011","question":"删除所有订单","expected_route":"action","difficulty":"medium"}
+{"id":"route_012","question":"帮我写一首关于秋天的诗","expected_route":"unsupported","difficulty":"easy"}
+{"id":"route_013","question":"帮我翻译这段英文","expected_route":"unsupported","difficulty":"easy"}
+{"id":"route_014","question":"中国最大的城市是什么？","expected_route":"unsupported","difficulty":"easy"}
+{"id":"route_015","question":"给我制定一个健身计划","expected_route":"unsupported","difficulty":"easy"}
