@@ -3,6 +3,7 @@ name = "eco-agent-os"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
+    "fastapi>=0.140.8",
     "langfuse>=4.15.4",
     "langgraph>=1.2.11",
     "langgraph-checkpoint-sqlite>=3.1.1",
@@ -13,10 +14,12 @@ dependencies = [
     "sql>=2022.4.0",
     "sqlalchemy>=2.0.54",
     "sqlglot>=30.18.0",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "pytest>=9.1.1",
 ]
 
