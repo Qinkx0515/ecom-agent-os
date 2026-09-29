@@ -6,8 +6,8 @@ from ecom_agent_os.api.checkpoint_runtime import (
     create_checkpoint_pool,
     create_postgres_checkpointer,
 )
-from ecom_agent_os.commerce_pilot.supervisor.builder import (
-    build_supervisor_graph,
+from ecom_agent_os.commerce_pilot.supervisor.async_builder import (
+    build_async_supervisor_graph,
 )
 from collections.abc import (
     AsyncIterable,
@@ -33,7 +33,12 @@ from ecom_agent_os.api.schemas import (
     ChatRequest,
     ThreadResponse,
 )
-
+from ecom_agent_os.database.async_session import (
+    async_engine,
+)
+from ecom_agent_os.commerce_pilot.llm.async_client import (
+    close_async_llm_client,
+)
 
 @asynccontextmanager
 async def lifespan(
@@ -52,7 +57,7 @@ async def lifespan(
 
     await checkpointer.setup()
 
-    graph = build_supervisor_graph(
+    graph = build_async_supervisor_graph(
         checkpointer=checkpointer
     )
 
@@ -70,7 +75,12 @@ async def lifespan(
 
         yield
 
+
     finally:
+
+        await close_async_llm_client()
+
+        await async_engine.dispose()
 
         await pool.close()
 
