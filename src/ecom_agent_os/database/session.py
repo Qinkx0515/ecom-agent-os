@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker
 
 from ecom_agent_os.database.config import DATABASE_URL
 
-
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,

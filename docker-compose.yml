@@ -1,26 +1,133 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: commerce-postgres
 
-    env_file:
-      - .env
+  postgres-business:
+    image: postgres:16-alpine
+
+    container_name: commerce-postgres-business
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-commerce}
+      POSTGRES_USER: ${POSTGRES_USER:-commerce}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-commerce_dev_password}
 
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5432:5432"
 
     volumes:
-      - commerce_pgdata:/var/lib/postgresql/data
+      - business-postgres-data:/var/lib/postgresql/data
 
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+          "pg_isready -U ${POSTGRES_USER:-commerce} -d ${POSTGRES_DB:-commerce}"
         ]
       interval: 5s
       timeout: 5s
       retries: 10
 
+    restart: unless-stopped
+
+
+  postgres-checkpoint:
+    image: postgres:16-alpine
+
+    container_name: commerce-postgres-checkpoint
+
+    environment:
+      POSTGRES_DB: ${CHECKPOINT_POSTGRES_DB:-commerce_checkpoint}
+      POSTGRES_USER: ${POSTGRES_USER:-commerce}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-commerce_dev_password}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - checkpoint-postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-commerce} -d ${CHECKPOINT_POSTGRES_DB:-commerce_checkpoint}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    restart: unless-stopped
+
+
+  business-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    environment:
+      DATABASE_URL: >-
+        postgresql+psycopg://${POSTGRES_USER:-commerce}:${POSTGRES_PASSWORD:-commerce_dev_password}@postgres-business:5432/${POSTGRES_DB:-commerce}
+
+      LANGFUSE_TRACING_ENABLED: "false"
+
+    depends_on:
+      postgres-business:
+        condition: service_healthy
+
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "python -m ecom_agent_os.database.init_db && python -m ecom_agent_os.database.seed"
+      ]
+
+    restart: "no"
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: commercepilot-api
+
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+
+      DATABASE_URL: >-
+        postgresql+psycopg://${POSTGRES_USER:-commerce}:${POSTGRES_PASSWORD:-commerce_dev_password}@postgres-business:5432/${POSTGRES_DB:-commerce}
+
+      CHECKPOINT_DATABASE_URL: >-
+        postgresql://${POSTGRES_USER:-commerce}:${POSTGRES_PASSWORD:-commerce_dev_password}@postgres-checkpoint:5432/${CHECKPOINT_POSTGRES_DB:-commerce_checkpoint}
+
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-}
+
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-}
+      LANGFUSE_TRACING_ENABLED: ${LANGFUSE_TRACING_ENABLED:-false}
+
+      LANGGRAPH_STRICT_MSGPACK: "true"
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres-business:
+        condition: service_healthy
+
+      postgres-checkpoint:
+        condition: service_healthy
+
+      business-init:
+        condition: service_completed_successfully
+
+    restart: unless-stopped
+
+
 volumes:
-  commerce_pgdata:
+
+  business-postgres-data:
+
+  checkpoint-postgres-data:

@@ -23,9 +23,9 @@ from ecom_agent_os.commerce_pilot.text_to_sql.models import (
     SQLGeneration,
 )
 
+
 @dataclass
 class AttemptRecord:
-
     attempt: int
 
     sql: str | None
@@ -37,7 +37,6 @@ class AttemptRecord:
 
 @dataclass
 class TextToSQLResult:
-
     question: str
 
     sql: str
@@ -53,15 +52,11 @@ class TextToSQLResult:
     truncated: bool
 
 
-class UnsupportedQuestionError(
-    ValueError
-):
+class UnsupportedQuestionError(ValueError):
     pass
 
 
-class TextToSQLFailed(
-    RuntimeError
-):
+class TextToSQLFailed(RuntimeError):
     pass
 
 
@@ -79,28 +74,21 @@ def run_text_to_sql(
 
     error_message: str | None = None
 
-    attempts: list[
-        AttemptRecord
-    ] = []
+    attempts: list[AttemptRecord] = []
 
     for attempt_number in range(
         1,
         max_attempts + 1,
     ):
-
         try:
-
-            generation: SQLGeneration = (
-                sql_generator(
-                    question=question,
-                    schema=schema,
-                    previous_sql=previous_sql,
-                    error_message=error_message,
-                )
+            generation: SQLGeneration = sql_generator(
+                question=question,
+                schema=schema,
+                previous_sql=previous_sql,
+                error_message=error_message,
             )
 
         except LLMGenerationError as exc:
-
             attempts.append(
                 AttemptRecord(
                     attempt=attempt_number,
@@ -115,10 +103,8 @@ def run_text_to_sql(
             continue
 
         if not generation.is_supported:
-
             raise UnsupportedQuestionError(
-                generation.unsupported_reason
-                or "Unsupported question."
+                generation.unsupported_reason or "Unsupported question."
             )
 
         sql = generation.sql
@@ -126,21 +112,13 @@ def run_text_to_sql(
         assert sql is not None
 
         try:
-
-            execution: SQLExecutionResult = (
-                sql_executor(
-                    sql
-                )
-            )
+            execution: SQLExecutionResult = sql_executor(sql)
 
         except (
             SQLValidationError,
             SQLExecutionError,
         ) as exc:
-
-            error_message = str(
-                exc
-            )[:1500]
+            error_message = str(exc)[:1500]
 
             previous_sql = sql
 
@@ -180,7 +158,5 @@ def run_text_to_sql(
         )
 
     raise TextToSQLFailed(
-        "Text-to-SQL failed after "
-        f"{max_attempts} attempts. "
-        f"Last error: {error_message}"
+        f"Text-to-SQL failed after {max_attempts} attempts. Last error: {error_message}"
     )

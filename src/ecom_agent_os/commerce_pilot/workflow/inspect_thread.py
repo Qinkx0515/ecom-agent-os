@@ -8,129 +8,63 @@ from ecom_agent_os.commerce_pilot.workflow.persistence import (
 
 def main():
 
-    thread_id = input(
-        "请输入 thread_id：\n> "
-    ).strip()
+    thread_id = input("请输入 thread_id：\n> ").strip()
 
     if not thread_id:
-
-        print(
-            "thread_id 不能为空。"
-        )
+        print("thread_id 不能为空。")
 
         return
 
-    config = {
-        "configurable": {
-            "thread_id":
-                thread_id
-        }
-    }
+    config = {"configurable": {"thread_id": thread_id}}
 
     with create_sqlite_checkpointer() as checkpointer:
+        graph = build_commerce_graph(checkpointer=checkpointer)
 
-        graph = build_commerce_graph(
-            checkpointer=checkpointer
-        )
+        snapshot = graph.get_state(config)
 
-        snapshot = graph.get_state(
-            config
-        )
+        history = list(graph.get_state_history(config))
 
-        history = list(
-            graph.get_state_history(
-                config
-            )
-        )
-
-        print(
-            "\n===== Checkpoint History ====="
-        )
+        print("\n===== Checkpoint History =====")
 
         for index, state in enumerate(
             history,
             start=1,
         ):
+            print(f"\n--- Snapshot {index} ---")
 
-            print(
-                f"\n--- Snapshot {index} ---"
-            )
+            print("Checkpoint ID:")
 
-            print(
-                "Checkpoint ID:"
-            )
+            print(state.config["configurable"].get("checkpoint_id"))
 
-            print(
-                state.config[
-                    "configurable"
-                ].get(
-                    "checkpoint_id"
-                )
-            )
+            print("Next:")
 
-            print(
-                "Next:"
-            )
+            print(state.next)
 
-            print(
-                state.next
-            )
+            print("Status:")
 
-            print(
-                "Status:"
-            )
+            print(state.values.get("status"))
 
-            print(
-                state.values.get(
-                    "status"
-                )
-            )
+            print("Attempt:")
 
-            print(
-                "Attempt:"
-            )
+            print(state.values.get("attempt_number"))
 
-            print(
-                state.values.get(
-                    "attempt_number"
-                )
-            )
+        print("\n===== State Snapshot =====")
 
-        print(
-            "\n===== State Snapshot ====="
-        )
+        print("Values:")
 
-        print(
-            "Values:"
-        )
+        print(snapshot.values)
 
-        print(
-            snapshot.values
-        )
+        print("\nNext:")
 
-        print(
-            "\nNext:"
-        )
+        print(snapshot.next)
 
-        print(
-            snapshot.next
-        )
+        print("\nConfig:")
 
-        print(
-            "\nConfig:"
-        )
+        print(snapshot.config)
 
-        print(
-            snapshot.config
-        )
+        print("\nMetadata:")
 
-        print(
-            "\nMetadata:"
-        )
-
-        print(
-            snapshot.metadata
-        )
+        print(snapshot.metadata)
 
 
 if __name__ == "__main__":

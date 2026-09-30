@@ -1,3 +1,8 @@
+from langfuse import (
+    get_client,
+    observe,
+)
+
 from ecom_agent_os.commerce_pilot.sql.executor import (
     SQLExecutionError,
     SQLExecutionResult,
@@ -17,13 +22,9 @@ from ecom_agent_os.commerce_pilot.workflow.dependencies import (
 from ecom_agent_os.commerce_pilot.workflow.state import (
     CommerceGraphState,
 )
-from langfuse import (
-    get_client,
-    observe,
-)
+
 
 class CommerceNodes:
-
     def __init__(
         self,
         deps: CommerceDependencies,
@@ -31,16 +32,12 @@ class CommerceNodes:
 
         self.deps = deps
 
-
     def load_context(
         self,
         state: CommerceGraphState,
     ) -> CommerceGraphState:
 
-        schema = (
-            self.deps
-            .schema_provider()
-        )
+        schema = self.deps.schema_provider()
 
         return {
             "schema": schema,
@@ -50,13 +47,10 @@ class CommerceNodes:
                     3,
                 )
             ),
-            "status":
-                "context_loaded",
+            "status": "context_loaded",
         }
 
-    @observe(
-        name="workflow.generate_sql"
-    )
+    @observe(name="workflow.generate_sql")
     def generate_sql(
         self,
         state: CommerceGraphState,
@@ -74,287 +68,139 @@ class CommerceNodes:
 
         langfuse.update_current_span(
             metadata={
-                "attempt_number":
-                    attempt_number,
-
-                "is_retry":
-                    attempt_number > 1,
+                "attempt_number": attempt_number,
+                "is_retry": attempt_number > 1,
             }
         )
 
         previous_sql = None
 
-        if state.get(
-            "last_error"
-        ):
-
-            previous_sql = (
-                state.get(
-                    "current_sql"
-                )
-            )
+        if state.get("last_error"):
+            previous_sql = state.get("current_sql")
 
         try:
-
-            generation = (
-                self.deps.sql_generator(
-                    question=state[
-                        "question"
-                    ],
-                    schema=state[
-                        "schema"
-                    ],
-                    previous_sql=(
-                        previous_sql
-                    ),
-                    error_message=(
-                        state.get(
-                            "last_error"
-                        )
-                    ),
-                )
+            generation = self.deps.sql_generator(
+                question=state["question"],
+                schema=state["schema"],
+                previous_sql=(previous_sql),
+                error_message=(state.get("last_error")),
             )
 
         except LLMGenerationError as exc:
-
             error = str(exc)
 
             return {
-                "attempt_number":
-                    attempt_number,
-
-                "generation_ok":
-                    False,
-
-                "current_sql":
-                    None,
-
-                "last_error":
-                    error,
-
-                "status":
-                    "generation_failed",
-
+                "attempt_number": attempt_number,
+                "generation_ok": False,
+                "current_sql": None,
+                "last_error": error,
+                "status": "generation_failed",
                 "attempts": [
                     {
-                        "attempt":
-                            attempt_number,
-
-                        "stage":
-                            "generation",
-
-                        "sql":
-                            None,
-
-                        "status":
-                            "failed",
-
-                        "error":
-                            error,
+                        "attempt": attempt_number,
+                        "stage": "generation",
+                        "sql": None,
+                        "status": "failed",
+                        "error": error,
                     }
                 ],
             }
 
         if not generation.is_supported:
-
             return {
-                "attempt_number":
-                    attempt_number,
-
-                "generation_ok":
-                    True,
-
-                "is_supported":
-                    False,
-
-                "unsupported_reason":
-                    generation
-                    .unsupported_reason,
-
-                "query_plan":
-                    generation.query_plan,
-
-                "current_sql":
-                    None,
-
-                "last_error":
-                    None,
-
-                "status":
-                    "unsupported",
+                "attempt_number": attempt_number,
+                "generation_ok": True,
+                "is_supported": False,
+                "unsupported_reason": generation.unsupported_reason,
+                "query_plan": generation.query_plan,
+                "current_sql": None,
+                "last_error": None,
+                "status": "unsupported",
             }
 
         return {
-            "attempt_number":
-                attempt_number,
-
-            "generation_ok":
-                True,
-
-            "is_supported":
-                True,
-
-            "query_plan":
-                generation.query_plan,
-
-            "current_sql":
-                generation.sql,
-
-            "last_error":
-                None,
-
-            "status":
-                "sql_generated",
+            "attempt_number": attempt_number,
+            "generation_ok": True,
+            "is_supported": True,
+            "query_plan": generation.query_plan,
+            "current_sql": generation.sql,
+            "last_error": None,
+            "status": "sql_generated",
         }
-
 
     def execute_sql(
         self,
         state: CommerceGraphState,
     ) -> CommerceGraphState:
 
-        sql = state.get(
-            "current_sql"
-        )
+        sql = state.get("current_sql")
 
         if not sql:
-
-            error = (
-                "No SQL is available "
-                "for execution."
-            )
+            error = "No SQL is available for execution."
 
             return {
-                "execution_ok":
-                    False,
-
-                "last_error":
-                    error,
-
-                "status":
-                    "execution_failed",
-
+                "execution_ok": False,
+                "last_error": error,
+                "status": "execution_failed",
                 "attempts": [
                     {
-                        "attempt":
-                            state[
-                                "attempt_number"
-                            ],
-
-                        "stage":
-                            "execution",
-
-                        "sql":
-                            None,
-
-                        "status":
-                            "failed",
-
-                        "error":
-                            error,
+                        "attempt": state["attempt_number"],
+                        "stage": "execution",
+                        "sql": None,
+                        "status": "failed",
+                        "error": error,
                     }
                 ],
             }
 
         try:
-
-            execution = (
-                self.deps.sql_executor(
-                    sql
-                )
-            )
+            execution = self.deps.sql_executor(sql)
 
         except (
             SQLValidationError,
             SQLExecutionError,
         ) as exc:
-
             error = str(exc)
 
             langfuse = get_client()
 
             langfuse.update_current_span(
                 metadata={
-                    "execution_ok":
-                        False,
-
-                    "error_type":
-                        type(exc).__name__,
+                    "execution_ok": False,
+                    "error_type": type(exc).__name__,
                 }
             )
 
             return {
-                "execution_ok":
-                    False,
-
-                "last_error":
-                    error[:1500],
-
-                "status":
-                    "execution_failed",
-
+                "execution_ok": False,
+                "last_error": error[:1500],
+                "status": "execution_failed",
                 "attempts": [
                     {
-                        "attempt":
-                            state[
-                                "attempt_number"
-                            ],
-
-                        "stage":
-                            "execution",
-
-                        "sql":
-                            sql,
-
-                        "status":
-                            "failed",
-
-                        "error":
-                            error[:1500],
+                        "attempt": state["attempt_number"],
+                        "stage": "execution",
+                        "sql": sql,
+                        "status": "failed",
+                        "error": error[:1500],
                     }
                 ],
             }
 
         return {
-            "execution_ok":
-                True,
-
-            "columns":
-                execution.columns,
-
-            "rows":
-                execution.rows,
-
-            "truncated":
-                execution.truncated,
-
-            "current_sql":
-                execution.sql,
-
-            "last_error":
-                None,
-
-            "status":
-                "execution_succeeded",
-
+            "execution_ok": True,
+            "columns": execution.columns,
+            "rows": execution.rows,
+            "truncated": execution.truncated,
+            "current_sql": execution.sql,
+            "last_error": None,
+            "status": "execution_succeeded",
             "attempts": [
                 {
-                    "attempt":
-                        state[
-                            "attempt_number"
-                        ],
-
-                    "stage":
-                        "execution",
-
-                    "sql":
-                        execution.sql,
-
-                    "status":
-                        "success",
-
-                    "error":
-                        None,
+                    "attempt": state["attempt_number"],
+                    "stage": "execution",
+                    "sql": execution.sql,
+                    "status": "success",
+                    "error": None,
                 }
             ],
         }
@@ -375,43 +221,28 @@ class CommerceNodes:
         )
 
         if attempt < max_attempts:
-
             return {
-                "status":
-                    "retrying",
+                "status": "retrying",
             }
 
         return {
-            "status":
-                "max_attempts_reached",
+            "status": "max_attempts_reached",
         }
-
 
     def unsupported(
         self,
         state: CommerceGraphState,
     ) -> CommerceGraphState:
 
-        reason = state.get(
-            "unsupported_reason"
-        )
+        reason = state.get("unsupported_reason")
 
         if not reason:
-
-            reason = (
-                "该问题无法通过当前"
-                "电商分析数据库回答。"
-            )
+            reason = "该问题无法通过当前电商分析数据库回答。"
 
         return {
-            "final_answer":
-                f"该问题暂不支持："
-                f"{reason}",
-
-            "status":
-                "unsupported",
+            "final_answer": f"该问题暂不支持：{reason}",
+            "status": "unsupported",
         }
-
 
     def failed(
         self,
@@ -423,24 +254,14 @@ class CommerceNodes:
             0,
         )
 
-        error = state.get(
-            "last_error"
-        )
+        error = state.get("last_error")
 
         return {
             "final_answer": (
-                "Text-to-SQL 在 "
-                f"{attempt} 次尝试后"
-                "仍然失败。"
-
-                f"\n最后错误："
-                f"{error}"
+                f"Text-to-SQL 在 {attempt} 次尝试后仍然失败。\n最后错误：{error}"
             ),
-
-            "status":
-                "failed",
+            "status": "failed",
         }
-
 
     def generate_answer(
         self,
@@ -452,24 +273,20 @@ class CommerceNodes:
                 "columns",
                 [],
             ),
-
             rows=state.get(
                 "rows",
                 [],
             ),
-
             row_count=len(
                 state.get(
                     "rows",
                     [],
                 )
             ),
-
             truncated=state.get(
                 "truncated",
                 False,
             ),
-
             sql=state.get(
                 "current_sql",
                 "",
@@ -477,38 +294,24 @@ class CommerceNodes:
         )
 
         try:
-
-            answer = (
-                self.deps.answer_generator(
-                    question=state[
-                        "question"
-                    ],
-                    result=result,
-                )
+            answer = self.deps.answer_generator(
+                question=state["question"],
+                result=result,
             )
 
         except AnswerGenerationError as exc:
-
             return {
                 "final_answer": (
                     "SQL 查询已经成功，"
                     "但自然语言总结失败。"
-
                     "\n你仍然可以查看"
                     "数据库返回结果。"
                 ),
-
-                "last_error":
-                    str(exc),
-
-                "status":
-                    "partial_success",
+                "last_error": str(exc),
+                "status": "partial_success",
             }
 
         return {
-            "final_answer":
-                answer,
-
-            "status":
-                "success",
+            "final_answer": answer,
+            "status": "success",
         }

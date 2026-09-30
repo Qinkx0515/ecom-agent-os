@@ -4,16 +4,13 @@ from functools import lru_cache
 from dotenv import load_dotenv
 from langfuse.openai import OpenAI
 
-
 load_dotenv()
 
 
 @lru_cache(maxsize=1)
 def get_llm_client() -> OpenAI:
 
-    api_key = os.getenv(
-        "DEEPSEEK_API_KEY"
-    )
+    api_key = os.getenv("DEEPSEEK_API_KEY")
 
     base_url = os.getenv(
         "DEEPSEEK_BASE_URL",
@@ -21,10 +18,8 @@ def get_llm_client() -> OpenAI:
     )
 
     if not api_key:
-
         raise RuntimeError(
-            "DEEPSEEK_API_KEY is not configured. "
-            "Please check your .env file."
+            "DEEPSEEK_API_KEY is not configured. Please check your .env file."
         )
 
     return OpenAI(

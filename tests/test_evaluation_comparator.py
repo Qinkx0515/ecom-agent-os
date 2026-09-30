@@ -7,19 +7,9 @@ from ecom_agent_os.commerce_pilot.evaluation.comparator import (
 
 def test_result_comparison_ignores_alias():
 
-    actual = [
-        {
-            "total_sales":
-                Decimal("100.00")
-        }
-    ]
+    actual = [{"total_sales": Decimal("100.00")}]
 
-    expected = [
-        {
-            "gmv":
-                Decimal("100.0")
-        }
-    ]
+    expected = [{"gmv": Decimal("100.0")}]
 
     assert results_equivalent(
         actual,
@@ -59,19 +49,9 @@ def test_result_comparison_ignores_row_order():
 
 def test_wrong_result_is_rejected():
 
-    actual = [
-        {
-            "gmv":
-                Decimal("99")
-        }
-    ]
+    actual = [{"gmv": Decimal("99")}]
 
-    expected = [
-        {
-            "gmv":
-                Decimal("100")
-        }
-    ]
+    expected = [{"gmv": Decimal("100")}]
 
     assert not results_equivalent(
         actual,

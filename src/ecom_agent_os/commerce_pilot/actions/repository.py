@@ -13,7 +13,6 @@ from ecom_agent_os.database.session import (
 
 @dataclass
 class ProductSnapshot:
-
     id: int
 
     sku: str
@@ -29,7 +28,6 @@ class ProductSnapshot:
 
 @dataclass
 class PriceUpdateResult:
-
     sku: str
 
     old_price: Decimal
@@ -39,9 +37,7 @@ class PriceUpdateResult:
     status: str
 
 
-class ActionExecutionError(
-    RuntimeError
-):
+class ActionExecutionError(RuntimeError):
     pass
 
 
@@ -50,14 +46,7 @@ def get_product_snapshot(
 ) -> ProductSnapshot | None:
 
     with SessionLocal() as session:
-
-        product = session.scalar(
-            select(Product)
-            .where(
-                Product.sku
-                == sku
-            )
-        )
+        product = session.scalar(select(Product).where(Product.sku == sku))
 
         if product is None:
             return None
@@ -79,36 +68,18 @@ def update_product_price(
 ) -> PriceUpdateResult:
 
     with SessionLocal() as session:
-
         product = session.scalar(
-            select(Product)
-            .where(
-                Product.sku
-                == sku
-            )
-            .with_for_update()
+            select(Product).where(Product.sku == sku).with_for_update()
         )
 
         if product is None:
+            raise ActionExecutionError(f"Product not found: {sku}")
 
-            raise ActionExecutionError(
-                f"Product not found: "
-                f"{sku}"
-            )
-
-
-        current_price = (
-            product.price
-        )
-
+        current_price = product.price
 
         # ===== Idempotency =====
 
-        if (
-            current_price
-            == new_price
-        ):
-
+        if current_price == new_price:
             return PriceUpdateResult(
                 sku=sku,
                 old_price=current_price,
@@ -116,14 +87,9 @@ def update_product_price(
                 status="already_applied",
             )
 
-
         # ===== Optimistic Safety =====
 
-        if (
-            current_price
-            != expected_old_price
-        ):
-
+        if current_price != expected_old_price:
             raise ActionExecutionError(
                 "Product price changed "
                 "after approval request. "
@@ -133,13 +99,9 @@ def update_product_price(
                 f"{current_price}"
             )
 
-
-        product.price = (
-            new_price
-        )
+        product.price = new_price
 
         session.commit()
-
 
         return PriceUpdateResult(
             sku=sku,

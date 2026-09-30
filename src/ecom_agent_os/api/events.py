@@ -11,13 +11,11 @@ from fastapi.sse import (
 
 @dataclass
 class AgentEvent:
-
     event: str
 
     data: dict[str, Any]
 
     event_id: str | None = None
-
 
     def to_sse(
         self,
@@ -26,7 +24,5 @@ class AgentEvent:
         return ServerSentEvent(
             event=self.event,
             id=self.event_id,
-            data=jsonable_encoder(
-                self.data
-            ),
+            data=jsonable_encoder(self.data),
         )

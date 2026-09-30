@@ -1,6 +1,10 @@
 from ecom_agent_os.commerce_pilot.sql.executor import (
     execute_safe_sql,
 )
+import pytest
+
+
+pytestmark = pytest.mark.integration
 
 
 def test_execute_product_count():
@@ -15,12 +19,7 @@ def test_execute_product_count():
 
     assert result.row_count == 1
 
-    assert (
-        result.rows[0][
-            "product_count"
-        ]
-        > 0
-    )
+    assert result.rows[0]["product_count"] > 0
 
 
 def test_execute_category_query():
@@ -37,9 +36,6 @@ def test_execute_category_query():
 
     assert result.row_count > 0
 
-    categories = {
-        row["category"]
-        for row in result.rows
-    }
+    categories = {row["category"] for row in result.rows}
 
     assert "耳机" in categories

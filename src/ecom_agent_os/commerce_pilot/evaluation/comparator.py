@@ -1,5 +1,4 @@
 import json
-
 from datetime import (
     date,
     datetime,
@@ -19,20 +18,14 @@ def normalize_scalar(
         value,
         Decimal,
     ):
+        normalized = value.normalize()
 
-        normalized = (
-            value.normalize()
-        )
-
-        return str(
-            normalized
-        )
+        return str(normalized)
 
     if isinstance(
         value,
         float,
     ):
-
         return str(
             round(
                 value,
@@ -44,24 +37,16 @@ def normalize_scalar(
         value,
         (date, datetime),
     ):
-
         return value.isoformat()
 
-    return str(
-        value
-    )
+    return str(value)
 
 
 def row_signature(
     row: dict[str, Any],
 ) -> str:
 
-    values = [
-        normalize_scalar(
-            value
-        )
-        for value in row.values()
-    ]
+    values = [normalize_scalar(value) for value in row.values()]
 
     values.sort()
 
@@ -75,16 +60,9 @@ def canonicalize_rows(
     rows: list[dict[str, Any]],
 ) -> list[str]:
 
-    signatures = [
-        row_signature(
-            row
-        )
-        for row in rows
-    ]
+    signatures = [row_signature(row) for row in rows]
 
-    return sorted(
-        signatures
-    )
+    return sorted(signatures)
 
 
 def results_equivalent(
@@ -92,12 +70,4 @@ def results_equivalent(
     expected_rows: list[dict],
 ) -> bool:
 
-    return (
-        canonicalize_rows(
-            actual_rows
-        )
-        ==
-        canonicalize_rows(
-            expected_rows
-        )
-    )
+    return canonicalize_rows(actual_rows) == canonicalize_rows(expected_rows)

@@ -1,5 +1,4 @@
 import operator
-
 from typing import (
     Annotated,
     Any,
@@ -9,7 +8,6 @@ from typing import (
 
 
 class AttemptTrace(TypedDict):
-
     attempt: int
 
     stage: Literal[
@@ -31,7 +29,6 @@ class CommerceGraphState(
     TypedDict,
     total=False,
 ):
-
     # ===== User Input =====
 
     question: str

@@ -2,7 +2,6 @@ from ecom_agent_os.commerce_pilot.text_to_sql.business_semantics import (
     BUSINESS_SEMANTICS,
 )
 
-
 SQL_SYSTEM_PROMPT = """
 You are CommercePilot's Text-to-SQL agent.
 
@@ -88,7 +87,6 @@ def build_sql_prompt(
     ]
 
     if previous_sql:
-
         parts.extend(
             [
                 "",
@@ -98,7 +96,6 @@ def build_sql_prompt(
         )
 
     if error_message:
-
         parts.extend(
             [
                 "",

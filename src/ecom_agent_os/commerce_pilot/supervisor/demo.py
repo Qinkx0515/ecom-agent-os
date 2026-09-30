@@ -11,70 +11,33 @@ from ecom_agent_os.commerce_pilot.workflow.persistence import (
 
 def main():
 
-    request = input(
-        "\n请输入 CommercePilot 请求：\n> "
-    ).strip()
-
+    request = input("\n请输入 CommercePilot 请求：\n> ").strip()
 
     if not request:
+        request = "最近30天耳机品类GMV是多少？"
 
-        request = (
-            "最近30天耳机品类"
-            "GMV是多少？"
-        )
+    thread_id = f"commerce-supervisor-{uuid4()}"
 
-
-    thread_id = (
-        f"commerce-supervisor-"
-        f"{uuid4()}"
-    )
-
-
-    config = {
-        "configurable": {
-            "thread_id":
-                thread_id
-        }
-    }
-
+    config = {"configurable": {"thread_id": thread_id}}
 
     with create_sqlite_checkpointer() as saver:
-
-        graph = (
-            build_supervisor_graph(
-                checkpointer=saver
-            )
-        )
-
+        graph = build_supervisor_graph(checkpointer=saver)
 
         result = graph.invoke(
-            {
-                "request":
-                    request
-            },
+            {"request": request},
             config=config,
             durability="sync",
             version="v2",
         )
 
+        print("\n===== Thread ID =====")
 
-        print(
-            "\n===== Thread ID ====="
-        )
-
-        print(
-            thread_id
-        )
-
+        print(thread_id)
 
         if result.interrupts:
-
-            print(
-                "\n===== Human Approval Required ====="
-            )
+            print("\n===== Human Approval Required =====")
 
             for item in result.interrupts:
-
                 print(
                     json.dumps(
                         item.value,
@@ -83,69 +46,31 @@ def main():
                     )
                 )
 
-            print(
-                "\nGraph 已暂停。"
-            )
+            print("\nGraph 已暂停。")
 
             return
 
-
         state = result.value
 
+        print("\n===== Route =====")
 
-        print(
-            "\n===== Route ====="
-        )
+        print(state.get("route"))
 
-        print(
-            state.get(
-                "route"
-            )
-        )
+        print("\n===== Confidence =====")
 
+        print(state.get("route_confidence"))
 
-        print(
-            "\n===== Confidence ====="
-        )
+        print("\n===== Route Reason =====")
 
-        print(
-            state.get(
-                "route_confidence"
-            )
-        )
+        print(state.get("route_reason"))
 
+        print("\n===== Agent Used =====")
 
-        print(
-            "\n===== Route Reason ====="
-        )
+        print(state.get("agent_used"))
 
-        print(
-            state.get(
-                "route_reason"
-            )
-        )
+        print("\n===== Final Answer =====")
 
-
-        print(
-            "\n===== Agent Used ====="
-        )
-
-        print(
-            state.get(
-                "agent_used"
-            )
-        )
-
-
-        print(
-            "\n===== Final Answer ====="
-        )
-
-        print(
-            state.get(
-                "final_answer"
-            )
-        )
+        print(state.get("final_answer"))
 
 
 if __name__ == "__main__":

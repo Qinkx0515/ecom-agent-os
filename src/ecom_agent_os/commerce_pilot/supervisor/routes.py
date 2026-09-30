@@ -14,29 +14,15 @@ def route_supervisor(
     "failed",
 ]:
 
-    if (
-        state.get(
-            "status"
-        )
-        == "routing_failed"
-    ):
-
+    if state.get("status") == "routing_failed":
         return "failed"
 
-
-    route = state.get(
-        "route"
-    )
-
+    route = state.get("route")
 
     if route == "analytics":
-
         return "analytics_agent"
 
-
     if route == "action":
-
         return "action_agent"
-
 
     return "unsupported"

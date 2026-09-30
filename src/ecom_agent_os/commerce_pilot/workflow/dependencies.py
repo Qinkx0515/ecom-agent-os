@@ -23,7 +23,6 @@ from ecom_agent_os.commerce_pilot.text_to_sql.models import (
     frozen=True,
 )
 class CommerceDependencies:
-
     schema_provider: Callable[
         [],
         str,

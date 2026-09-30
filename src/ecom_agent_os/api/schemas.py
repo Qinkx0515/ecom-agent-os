@@ -7,7 +7,6 @@ from pydantic import (
 
 
 class ChatRequest(BaseModel):
-
     request: str = Field(
         min_length=1,
         max_length=2000,
@@ -15,7 +14,6 @@ class ChatRequest(BaseModel):
 
 
 class ApprovalRequest(BaseModel):
-
     thread_id: str = Field(
         min_length=1,
         max_length=200,
@@ -33,7 +31,6 @@ class ApprovalRequest(BaseModel):
 
 
 class HealthResponse(BaseModel):
-
     status: str
 
     service: str
@@ -42,7 +39,6 @@ class HealthResponse(BaseModel):
 
 
 class ThreadResponse(BaseModel):
-
     thread_id: str
 
     status: str | None

@@ -27,19 +27,11 @@ def build_action_graph(
 ):
 
     if deps is None:
-
         deps = ActionDependencies()
 
+    nodes = ActionNodes(deps)
 
-    nodes = ActionNodes(
-        deps
-    )
-
-
-    builder = StateGraph(
-        ActionState
-    )
-
+    builder = StateGraph(ActionState)
 
     builder.add_node(
         "plan_action",
@@ -81,67 +73,47 @@ def build_action_graph(
         nodes.failed,
     )
 
-
     builder.add_edge(
         START,
         "plan_action",
     )
 
-
     builder.add_conditional_edges(
         "plan_action",
         route_after_plan,
         {
-            "load_product":
-                "load_product",
-
-            "unsupported":
-                "unsupported",
-
-            "failed":
-                "failed",
+            "load_product": "load_product",
+            "unsupported": "unsupported",
+            "failed": "failed",
         },
     )
-
 
     builder.add_conditional_edges(
         "load_product",
         route_after_product,
         {
-            "assess_risk":
-                "assess_risk",
-
-            "failed":
-                "failed",
+            "assess_risk": "assess_risk",
+            "failed": "failed",
         },
     )
-
 
     builder.add_conditional_edges(
         "assess_risk",
         route_after_risk,
         {
-            "human_approval":
-                "human_approval",
-
-            "failed":
-                "failed",
+            "human_approval": "human_approval",
+            "failed": "failed",
         },
     )
-
 
     builder.add_conditional_edges(
         "human_approval",
         route_after_approval,
         {
-            "execute_action":
-                "execute_action",
-
-            "rejected":
-                "rejected",
+            "execute_action": "execute_action",
+            "rejected": "rejected",
         },
     )
-
 
     builder.add_edge(
         "execute_action",
@@ -163,7 +135,4 @@ def build_action_graph(
         END,
     )
 
-
-    return builder.compile(
-        checkpointer=checkpointer
-    )
+    return builder.compile(checkpointer=checkpointer)

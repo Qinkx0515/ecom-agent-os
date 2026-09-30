@@ -9,11 +9,9 @@ class SupervisorState(
     TypedDict,
     total=False,
 ):
-
     # ===== Input =====
 
     request: str
-
 
     # ===== Routing =====
 
@@ -29,13 +27,11 @@ class SupervisorState(
 
     agent_used: str
 
-
     # ===== Child Agent Result =====
 
     child_status: str
 
     child_data: dict[str, Any]
-
 
     # ===== Output =====
 

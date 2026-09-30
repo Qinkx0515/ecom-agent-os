@@ -26,16 +26,11 @@ def build_commerce_graph(
 ):
 
     if deps is None:
-
         deps = CommerceDependencies()
 
-    nodes = CommerceNodes(
-        deps
-    )
+    nodes = CommerceNodes(deps)
 
-    builder = StateGraph(
-        CommerceGraphState
-    )
+    builder = StateGraph(CommerceGraphState)
 
     builder.add_node(
         "load_context",
@@ -86,14 +81,9 @@ def build_commerce_graph(
         "generate_sql",
         route_after_generation,
         {
-            "execute_sql":
-                "execute_sql",
-
-            "retry_or_fail":
-                "retry_or_fail",
-
-            "unsupported":
-                "unsupported",
+            "execute_sql": "execute_sql",
+            "retry_or_fail": "retry_or_fail",
+            "unsupported": "unsupported",
         },
     )
 
@@ -101,11 +91,8 @@ def build_commerce_graph(
         "execute_sql",
         route_after_execution,
         {
-            "generate_answer":
-                "generate_answer",
-
-            "retry_or_fail":
-                "retry_or_fail",
+            "generate_answer": "generate_answer",
+            "retry_or_fail": "retry_or_fail",
         },
     )
 
@@ -113,11 +100,8 @@ def build_commerce_graph(
         "retry_or_fail",
         route_retry,
         {
-            "generate_sql":
-                "generate_sql",
-
-            "failed":
-                "failed",
+            "generate_sql": "generate_sql",
+            "failed": "failed",
         },
     )
 
@@ -136,9 +120,7 @@ def build_commerce_graph(
         END,
     )
 
-    return builder.compile(
-        checkpointer=checkpointer
-    )
+    return builder.compile(checkpointer=checkpointer)
 
 
 # if __name__ == "__main__":

@@ -8,91 +8,37 @@ from ecom_agent_os.observability.langfuse_client import (
 
 def main():
 
-    request = input(
-        "\n请输入请求：\n> "
-    ).strip()
-
+    request = input("\n请输入请求：\n> ").strip()
 
     if not request:
+        request = "最近30天耳机品类GMV是多少？"
 
-        request = (
-            "最近30天耳机品类"
-            "GMV是多少？"
-        )
+    result = run_commercepilot_request(request)
 
+    print("\n===== Thread =====")
 
-    result = (
-        run_commercepilot_request(
-            request
-        )
-    )
+    print(result["thread_id"])
 
+    if result["interrupts"]:
+        print("\n等待人工审批。")
 
-    print(
-        "\n===== Thread ====="
-    )
-
-    print(
-        result[
-            "thread_id"
-        ]
-    )
-
-
-    if result[
-        "interrupts"
-    ]:
-
-        print(
-            "\n等待人工审批。"
-        )
-
-        for item in (
-            result[
-                "interrupts"
-            ]
-        ):
-
-            print(
-                item.value
-            )
+        for item in result["interrupts"]:
+            print(item.value)
 
     else:
+        state = result["value"]
 
-        state = result[
-            "value"
-        ]
+        print("\n===== Status =====")
 
-        print(
-            "\n===== Status ====="
-        )
+        print(state.get("status"))
 
-        print(
-            state.get(
-                "status"
-            )
-        )
+        print("\n===== Agent =====")
 
-        print(
-            "\n===== Agent ====="
-        )
+        print(state.get("agent_used"))
 
-        print(
-            state.get(
-                "agent_used"
-            )
-        )
+        print("\n===== Answer =====")
 
-        print(
-            "\n===== Answer ====="
-        )
-
-        print(
-            state.get(
-                "final_answer"
-            )
-        )
-
+        print(state.get("final_answer"))
 
     # CLI 是短生命周期进程，
     # 结束前主动 flush。

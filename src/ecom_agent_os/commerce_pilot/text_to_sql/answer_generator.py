@@ -6,6 +6,8 @@ from datetime import (
 from decimal import Decimal
 from typing import Any
 
+from langfuse import observe
+
 from ecom_agent_os.commerce_pilot.llm.client import (
     get_llm_client,
     get_model_name,
@@ -13,11 +15,9 @@ from ecom_agent_os.commerce_pilot.llm.client import (
 from ecom_agent_os.commerce_pilot.sql.executor import (
     SQLExecutionResult,
 )
-from langfuse import observe
 
-class AnswerGenerationError(
-    RuntimeError
-):
+
+class AnswerGenerationError(RuntimeError):
     pass
 
 
@@ -44,18 +44,10 @@ def serialize_rows(
     rows: list[dict],
 ) -> list[dict]:
 
-    return [
-        {
-            key: make_json_safe(value)
-            for key, value in row.items()
-        }
-        for row in rows
-    ]
+    return [{key: make_json_safe(value) for key, value in row.items()} for row in rows]
 
 
-@observe(
-    name="answer.generate"
-)
+@observe(name="answer.generate")
 def generate_answer(
     question: str,
     result: SQLExecutionResult,
@@ -63,9 +55,7 @@ def generate_answer(
 
     client = get_llm_client()
 
-    rows = serialize_rows(
-        result.rows[:50]
-    )
+    rows = serialize_rows(result.rows[:50])
 
     result_json = json.dumps(
         rows,
@@ -105,43 +95,28 @@ Rules:
 """
 
     try:
-
-        response = (
-            client.chat.completions.create(
-                model=get_model_name(),
-                messages=[
-                    {
-                        "role": "system",
-                        "content": system_prompt,
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompt,
-                    },
-                ],
-                temperature=0,
-                max_tokens=800,
-            )
+        response = client.chat.completions.create(
+            model=get_model_name(),
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt,
+                },
+            ],
+            temperature=0,
+            max_tokens=800,
         )
 
     except Exception as exc:
+        raise AnswerGenerationError(f"Answer generation failed: {exc}") from exc
 
-        raise AnswerGenerationError(
-            f"Answer generation failed: {exc}"
-        ) from exc
-
-    content = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
+    content = response.choices[0].message.content
 
     if not content:
-
-        raise AnswerGenerationError(
-            "Answer model returned "
-            "empty content."
-        )
+        raise AnswerGenerationError("Answer model returned empty content.")
 
     return content.strip()
