@@ -1,8 +1,8 @@
+import pytest
+
 from ecom_agent_os.commerce_pilot.sql.executor import (
     execute_safe_sql,
 )
-import pytest
-
 
 pytestmark = pytest.mark.integration
 

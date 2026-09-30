@@ -1,9 +1,9 @@
 import os
+
+import pytest
 from langgraph.checkpoint.postgres.aio import (
     AsyncPostgresSaver,
 )
-import pytest
-
 
 pytestmark = pytest.mark.integration
 

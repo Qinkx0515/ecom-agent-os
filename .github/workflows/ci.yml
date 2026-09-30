@@ -1,0 +1,187 @@
+name: CI
+
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+
+permissions:
+  contents: read
+
+
+jobs:
+
+  quality:
+    name: Lint and Unit Tests
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.12.19"
+          enable-cache: true
+
+
+      - name: Install Python
+        run: uv python install 3.11
+
+
+      - name: Sync dependencies
+        run: |
+          uv sync \
+            --locked \
+            --all-extras \
+            --dev
+
+
+      - name: Ruff lint
+        run: |
+          uv run ruff check \
+            --output-format=github \
+            src tests
+
+
+      - name: Ruff format check
+        run: |
+          uv run ruff format \
+            --check \
+            src tests
+
+
+      - name: Run unit tests
+        env:
+          LANGFUSE_TRACING_ENABLED: "false"
+        run: |
+          uv run pytest \
+            -m "not integration" \
+            -q
+
+  integration:
+    name: PostgreSQL Integration Tests
+
+    runs-on: ubuntu-latest
+
+    services:
+
+      business-postgres:
+        image: postgres:16-alpine
+
+        env:
+          POSTGRES_DB: commerce
+          POSTGRES_USER: commerce
+          POSTGRES_PASSWORD: commerce_test_password
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd
+          "pg_isready -U commerce -d commerce"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+
+      checkpoint-postgres:
+        image: postgres:16-alpine
+
+        env:
+          POSTGRES_DB: commerce_checkpoint
+          POSTGRES_USER: commerce
+          POSTGRES_PASSWORD: commerce_test_password
+
+        ports:
+          - 5433:5432
+
+        options: >-
+          --health-cmd
+          "pg_isready -U commerce -d commerce_checkpoint"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+
+    env:
+
+      DATABASE_URL: >-
+        postgresql+psycopg://commerce:commerce_test_password@localhost:5432/commerce
+
+      CHECKPOINT_DATABASE_URL: >-
+        postgresql://commerce:commerce_test_password@localhost:5433/commerce_checkpoint
+
+      LANGFUSE_TRACING_ENABLED: "false"
+
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.12.19"
+          enable-cache: true
+
+
+      - name: Install Python
+        run: uv python install 3.11
+
+
+      - name: Sync dependencies
+        run: |
+          uv sync \
+            --locked \
+            --all-extras \
+            --dev
+
+
+      - name: Initialize database
+        run: |
+          uv run python \
+            -m ecom_agent_os.database.init_db
+
+
+      - name: Seed database
+        run: |
+          uv run python \
+            -m ecom_agent_os.database.seed
+
+
+      - name: Run integration tests
+        run: |
+          uv run pytest \
+            -m integration \
+            -q
+
+  docker:
+    name: Docker Build
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - quality
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --tag commercepilot:ci \
+            .
