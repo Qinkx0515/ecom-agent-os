@@ -5,59 +5,32 @@ from ecom_agent_os.commerce_pilot.workflow.builder import (
 
 def main():
 
-    print(
-        "\n============================"
-    )
+    print("\n============================")
 
-    print(
-        "CommercePilot LangGraph V3"
-    )
+    print("CommercePilot LangGraph V3")
 
-    print(
-        "============================\n"
-    )
+    print("============================\n")
 
-    question = input(
-        "请输入经营分析问题：\n> "
-    ).strip()
+    question = input("请输入经营分析问题：\n> ").strip()
 
     if not question:
+        question = "最近30天耳机品类GMV是多少？"
 
-        question = (
-            "最近30天耳机品类"
-            "GMV是多少？"
-        )
-
-    graph = (
-        build_commerce_graph()
-    )
+    graph = build_commerce_graph()
 
     result = graph.invoke(
         {
-            "question":
-                question,
-
-            "max_attempts":
-                3,
-
-            "attempts":
-                [],
+            "question": question,
+            "max_attempts": 3,
+            "attempts": [],
         }
     )
 
-    print(
-        "\n===== Status ====="
-    )
+    print("\n===== Status =====")
 
-    print(
-        result.get(
-            "status"
-        )
-    )
+    print(result.get("status"))
 
-    print(
-        "\n===== Query Plan ====="
-    )
+    print("\n===== Query Plan =====")
 
     for index, step in enumerate(
         result.get(
@@ -66,76 +39,38 @@ def main():
         ),
         start=1,
     ):
+        print(f"{index}. {step}")
 
-        print(
-            f"{index}. {step}"
-        )
+    print("\n===== SQL =====")
 
-    print(
-        "\n===== SQL ====="
-    )
+    print(result.get("current_sql"))
 
-    print(
-        result.get(
-            "current_sql"
-        )
-    )
-
-    print(
-        "\n===== Attempts ====="
-    )
+    print("\n===== Attempts =====")
 
     for attempt in result.get(
         "attempts",
         [],
     ):
+        print(f"\nAttempt {attempt['attempt']}")
 
-        print(
-            f"\nAttempt "
-            f"{attempt['attempt']}"
-        )
+        print(f"Stage: {attempt['stage']}")
 
-        print(
-            f"Stage: "
-            f"{attempt['stage']}"
-        )
+        print(f"Status: {attempt['status']}")
 
-        print(
-            f"Status: "
-            f"{attempt['status']}"
-        )
+        if attempt["error"]:
+            print(f"Error: {attempt['error']}")
 
-        if attempt[
-            "error"
-        ]:
-
-            print(
-                f"Error: "
-                f"{attempt['error']}"
-            )
-
-    print(
-        "\n===== Rows ====="
-    )
+    print("\n===== Rows =====")
 
     for row in result.get(
         "rows",
         [],
     ):
+        print(row)
 
-        print(
-            row
-        )
+    print("\n===== Final Answer =====")
 
-    print(
-        "\n===== Final Answer ====="
-    )
-
-    print(
-        result.get(
-            "final_answer"
-        )
-    )
+    print(result.get("final_answer"))
 
 
 if __name__ == "__main__":

@@ -24,33 +24,17 @@ from ecom_agent_os.commerce_pilot.actions.repository import (
     frozen=True,
 )
 class AsyncActionDependencies:
-
     action_planner: Callable[
         [str],
-        Awaitable[
-            ActionPlan
-        ],
-    ] = (
-        async_generate_action_plan
-    )
-
+        Awaitable[ActionPlan],
+    ] = async_generate_action_plan
 
     product_reader: Callable[
         [str],
-        Awaitable[
-            ProductSnapshot
-            | None
-        ],
-    ] = (
-        async_get_product_snapshot
-    )
-
+        Awaitable[ProductSnapshot | None],
+    ] = async_get_product_snapshot
 
     price_updater: Callable[
         ...,
-        Awaitable[
-            PriceUpdateResult
-        ],
-    ] = (
-        async_update_product_price
-    )
+        Awaitable[PriceUpdateResult],
+    ] = async_update_product_price

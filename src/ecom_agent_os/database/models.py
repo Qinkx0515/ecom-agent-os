@@ -44,9 +44,7 @@ class User(Base):
         nullable=False,
     )
 
-    orders: Mapped[list["Order"]] = relationship(
-        back_populates="user"
-    )
+    orders: Mapped[list["Order"]] = relationship(back_populates="user")
 
 
 class Product(Base):
@@ -90,9 +88,7 @@ class Product(Base):
         default=0,
     )
 
-    order_items: Mapped[list["OrderItem"]] = relationship(
-        back_populates="product"
-    )
+    order_items: Mapped[list["OrderItem"]] = relationship(back_populates="product")
 
     traffic_records: Mapped[list["TrafficDaily"]] = relationship(
         back_populates="product"
@@ -129,13 +125,9 @@ class Order(Base):
         nullable=False,
     )
 
-    user: Mapped["User"] = relationship(
-        back_populates="orders"
-    )
+    user: Mapped["User"] = relationship(back_populates="orders")
 
-    items: Mapped[list["OrderItem"]] = relationship(
-        back_populates="order"
-    )
+    items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
 
 
 class OrderItem(Base):
@@ -168,13 +160,9 @@ class OrderItem(Base):
         nullable=False,
     )
 
-    order: Mapped["Order"] = relationship(
-        back_populates="items"
-    )
+    order: Mapped["Order"] = relationship(back_populates="items")
 
-    product: Mapped["Product"] = relationship(
-        back_populates="order_items"
-    )
+    product: Mapped["Product"] = relationship(back_populates="order_items")
 
     refund: Mapped["Refund | None"] = relationship(
         back_populates="order_item",
@@ -221,9 +209,7 @@ class TrafficDaily(Base):
         nullable=False,
     )
 
-    product: Mapped["Product"] = relationship(
-        back_populates="traffic_records"
-    )
+    product: Mapped["Product"] = relationship(back_populates="traffic_records")
 
     __table_args__ = (
         UniqueConstraint(
@@ -273,6 +259,4 @@ class Refund(Base):
         nullable=False,
     )
 
-    order_item: Mapped["OrderItem"] = relationship(
-        back_populates="refund"
-    )
+    order_item: Mapped["OrderItem"] = relationship(back_populates="refund")

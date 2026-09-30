@@ -19,18 +19,15 @@ from ecom_agent_os.commerce_pilot.actions.repository import (
     frozen=True,
 )
 class ActionDependencies:
-
     action_planner: Callable[
         [str],
         ActionPlan,
     ] = generate_action_plan
 
-
     product_reader: Callable[
         [str],
         ProductSnapshot | None,
     ] = get_product_snapshot
-
 
     price_updater: Callable[
         ...,

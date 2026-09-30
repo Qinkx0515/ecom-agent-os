@@ -1,5 +1,6 @@
 import json
 
+from langfuse import observe
 from pydantic import ValidationError
 
 from ecom_agent_os.commerce_pilot.actions.models import (
@@ -9,11 +10,9 @@ from ecom_agent_os.commerce_pilot.llm.client import (
     get_llm_client,
     get_model_name,
 )
-from langfuse import observe
 
-class ActionPlanningError(
-    RuntimeError
-):
+
+class ActionPlanningError(RuntimeError):
     pass
 
 
@@ -66,9 +65,7 @@ Unsupported example:
 """
 
 
-@observe(
-    name="action.plan"
-)
+@observe(name="action.plan")
 def generate_action_plan(
     user_request: str,
 ) -> ActionPlan:
@@ -76,73 +73,38 @@ def generate_action_plan(
     client = get_llm_client()
 
     try:
-
-        response = (
-            client.chat.completions.create(
-                model=get_model_name(),
-                messages=[
-                    {
-                        "role": "system",
-                        "content":
-                            ACTION_SYSTEM_PROMPT,
-                    },
-                    {
-                        "role": "user",
-                        "content":
-                            user_request,
-                    },
-                ],
-                response_format={
-                    "type":
-                        "json_object"
+        response = client.chat.completions.create(
+            model=get_model_name(),
+            messages=[
+                {
+                    "role": "system",
+                    "content": ACTION_SYSTEM_PROMPT,
                 },
-                temperature=0,
-                max_tokens=500,
-            )
+                {
+                    "role": "user",
+                    "content": user_request,
+                },
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+            max_tokens=500,
         )
 
     except Exception as exc:
+        raise ActionPlanningError(f"Action planning failed: {exc}") from exc
 
-        raise ActionPlanningError(
-            f"Action planning failed: "
-            f"{exc}"
-        ) from exc
-
-
-    content = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
+    content = response.choices[0].message.content
 
     if not content:
-
-        raise ActionPlanningError(
-            "Action planner returned "
-            "empty content."
-        )
-
+        raise ActionPlanningError("Action planner returned empty content.")
 
     try:
+        data = json.loads(content)
 
-        data = json.loads(
-            content
-        )
-
-        return (
-            ActionPlan
-            .model_validate(
-                data
-            )
-        )
+        return ActionPlan.model_validate(data)
 
     except (
         json.JSONDecodeError,
         ValidationError,
     ) as exc:
-
-        raise ActionPlanningError(
-            "Invalid action plan: "
-            f"{exc}"
-        ) from exc
+        raise ActionPlanningError(f"Invalid action plan: {exc}") from exc

@@ -28,30 +28,20 @@ from ecom_agent_os.commerce_pilot.text_to_sql.models import (
     frozen=True,
 )
 class AsyncCommerceDependencies:
-
     schema_provider: Callable[
         [],
         Awaitable[str],
-    ] = (
-        async_format_schema_for_llm
-    )
-
+    ] = async_format_schema_for_llm
 
     sql_generator: Callable[
         ...,
-        Awaitable[
-            SQLGeneration
-        ],
+        Awaitable[SQLGeneration],
     ] = async_generate_sql
-
 
     sql_executor: Callable[
         [str],
-        Awaitable[
-            SQLExecutionResult
-        ],
+        Awaitable[SQLExecutionResult],
     ] = async_execute_safe_sql
-
 
     answer_generator: Callable[
         ...,

@@ -5,26 +5,18 @@ from langfuse.openai import (
     AsyncOpenAI,
 )
 
-
 load_dotenv()
 
 
-_async_client: (
-    AsyncOpenAI
-    | None
-) = None
+_async_client: AsyncOpenAI | None = None
 
 
-def get_async_llm_client(
-) -> AsyncOpenAI:
+def get_async_llm_client() -> AsyncOpenAI:
 
     global _async_client
 
     if _async_client is None:
-
-        api_key = os.getenv(
-            "DEEPSEEK_API_KEY"
-        )
+        api_key = os.getenv("DEEPSEEK_API_KEY")
 
         base_url = os.getenv(
             "DEEPSEEK_BASE_URL",
@@ -32,11 +24,7 @@ def get_async_llm_client(
         )
 
         if not api_key:
-
-            raise RuntimeError(
-                "DEEPSEEK_API_KEY "
-                "is not configured."
-            )
+            raise RuntimeError("DEEPSEEK_API_KEY is not configured.")
 
         _async_client = AsyncOpenAI(
             api_key=api_key,
@@ -46,8 +34,7 @@ def get_async_llm_client(
     return _async_client
 
 
-def get_async_model_name(
-) -> str:
+def get_async_model_name() -> str:
 
     return os.getenv(
         "DEEPSEEK_MODEL",

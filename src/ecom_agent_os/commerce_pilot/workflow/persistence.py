@@ -5,10 +5,7 @@ from langgraph.checkpoint.sqlite import (
     SqliteSaver,
 )
 
-
-DEFAULT_CHECKPOINT_PATH = Path(
-    "data/checkpoints/commerce.sqlite3"
-)
+DEFAULT_CHECKPOINT_PATH = Path("data/checkpoints/commerce.sqlite3")
 
 
 @contextmanager
@@ -21,8 +18,5 @@ def create_sqlite_checkpointer(
         exist_ok=True,
     )
 
-    with SqliteSaver.from_conn_string(
-        str(path)
-    ) as checkpointer:
-
+    with SqliteSaver.from_conn_string(str(path)) as checkpointer:
         yield checkpointer

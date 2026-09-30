@@ -15,30 +15,21 @@ from ecom_agent_os.commerce_pilot.text_to_sql.answer_generator import (
 )
 
 
-@observe(
-    name="answer.generate"
-)
+@observe(name="answer.generate")
 async def async_generate_answer(
     question: str,
     result: SQLExecutionResult,
 ) -> str:
 
-    client = (
-        get_async_llm_client()
-    )
+    client = get_async_llm_client()
 
-
-    rows = serialize_rows(
-        result.rows[:50]
-    )
-
+    rows = serialize_rows(result.rows[:50])
 
     result_json = json.dumps(
         rows,
         ensure_ascii=False,
         indent=2,
     )
-
 
     system_prompt = """
 You are CommercePilot's analytics answer agent.
@@ -54,7 +45,6 @@ Rules:
 4. Keep the answer concise and business-oriented.
 5. Use Chinese.
 """
-
 
     user_prompt = f"""
 用户问题：
@@ -72,64 +62,29 @@ Rules:
 请基于这些数据回答用户问题。
 """
 
-
     try:
-
-        response = await (
-            client
-            .chat
-            .completions
-            .create(
-                model=(
-                    get_async_model_name()
-                ),
-
-                messages=[
-                    {
-                        "role":
-                            "system",
-
-                        "content":
-                            system_prompt,
-                    },
-                    {
-                        "role":
-                            "user",
-
-                        "content":
-                            user_prompt,
-                    },
-                ],
-
-                temperature=0,
-
-                max_tokens=800,
-            )
+        response = await client.chat.completions.create(
+            model=(get_async_model_name()),
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt,
+                },
+            ],
+            temperature=0,
+            max_tokens=800,
         )
-
 
     except Exception as exc:
+        raise AnswerGenerationError(f"Answer generation failed: {exc}") from exc
 
-        raise AnswerGenerationError(
-            "Answer generation "
-            f"failed: {exc}"
-        ) from exc
-
-
-    content = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
+    content = response.choices[0].message.content
 
     if not content:
-
-        raise AnswerGenerationError(
-            "Answer model returned "
-            "empty content."
-        )
-
+        raise AnswerGenerationError("Answer model returned empty content.")
 
     return content.strip()

@@ -21,28 +21,15 @@ from ecom_agent_os.commerce_pilot.workflow.state import (
 
 
 def build_async_commerce_graph(
-    deps: (
-        AsyncCommerceDependencies
-        | None
-    ) = None,
+    deps: (AsyncCommerceDependencies | None) = None,
 ):
 
     if deps is None:
+        deps = AsyncCommerceDependencies()
 
-        deps = (
-            AsyncCommerceDependencies()
-        )
+    nodes = AsyncCommerceNodes(deps)
 
-
-    nodes = AsyncCommerceNodes(
-        deps
-    )
-
-
-    builder = StateGraph(
-        CommerceGraphState
-    )
-
+    builder = StateGraph(CommerceGraphState)
 
     builder.add_node(
         "load_context",
@@ -79,7 +66,6 @@ def build_async_commerce_graph(
         nodes.failed,
     )
 
-
     builder.add_edge(
         START,
         "load_context",
@@ -90,24 +76,20 @@ def build_async_commerce_graph(
         "generate_sql",
     )
 
-
     builder.add_conditional_edges(
         "generate_sql",
         route_after_generation,
     )
-
 
     builder.add_conditional_edges(
         "execute_sql",
         route_after_execution,
     )
 
-
     builder.add_conditional_edges(
         "retry_or_fail",
         route_retry,
     )
-
 
     builder.add_edge(
         "generate_answer",
@@ -123,6 +105,5 @@ def build_async_commerce_graph(
         "failed",
         END,
     )
-
 
     return builder.compile()

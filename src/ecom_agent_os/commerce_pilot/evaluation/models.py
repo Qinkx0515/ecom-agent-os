@@ -4,7 +4,6 @@ from pydantic import BaseModel, Field
 
 
 class RoutingEvalCase(BaseModel):
-
     id: str
 
     question: str
@@ -19,22 +18,18 @@ class RoutingEvalCase(BaseModel):
 
 
 class AnalyticsEvalCase(BaseModel):
-
     id: str
 
     question: str
 
     difficulty: str
 
-    tags: list[str] = Field(
-        default_factory=list
-    )
+    tags: list[str] = Field(default_factory=list)
 
     expected_sql: str
 
 
 class RoutingEvalResult(BaseModel):
-
     id: str
 
     question: str
@@ -51,7 +46,6 @@ class RoutingEvalResult(BaseModel):
 
 
 class AnalyticsEvalResult(BaseModel):
-
     id: str
 
     question: str

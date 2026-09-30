@@ -30,9 +30,9 @@ def main():
     # ORDER BY gmv DESC
     # """
 
-#     sql = """
-# DELETE FROM orders
-# """
+    #     sql = """
+    # DELETE FROM orders
+    # """
 
     # sql = """
     #       SELECT *
@@ -47,58 +47,30 @@ def main():
           """
 
     try:
+        result = execute_safe_sql(sql)
 
-        result = execute_safe_sql(
-            sql
-        )
+        print("\n===== SAFE SQL =====")
 
-        print(
-            "\n===== SAFE SQL ====="
-        )
+        print(result.sql)
 
-        print(
-            result.sql
-        )
-
-        print(
-            "\n===== RESULT ====="
-        )
+        print("\n===== RESULT =====")
 
         for row in result.rows:
+            print(row)
 
-            print(
-                row
-            )
+        print(f"\nRows: {result.row_count}")
 
-        print(
-            f"\nRows: "
-            f"{result.row_count}"
-        )
-
-        print(
-            f"Truncated: "
-            f"{result.truncated}"
-        )
+        print(f"Truncated: {result.truncated}")
 
     except SQLValidationError as exc:
+        print("SQL validation failed:")
 
-        print(
-            "SQL validation failed:"
-        )
-
-        print(
-            exc
-        )
+        print(exc)
 
     except SQLExecutionError as exc:
+        print("SQL execution failed:")
 
-        print(
-            "SQL execution failed:"
-        )
-
-        print(
-            exc
-        )
+        print(exc)
 
 
 if __name__ == "__main__":

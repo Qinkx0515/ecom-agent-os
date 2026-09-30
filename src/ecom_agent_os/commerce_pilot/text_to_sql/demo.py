@@ -7,121 +7,64 @@ from ecom_agent_os.commerce_pilot.text_to_sql.service import (
 
 def main():
 
-    print(
-        "\n=========================="
-    )
+    print("\n==========================")
 
-    print(
-        "CommercePilot Text-to-SQL"
-    )
+    print("CommercePilot Text-to-SQL")
 
-    print(
-        "==========================\n"
-    )
+    print("==========================\n")
 
-    question = input(
-        "请输入经营分析问题：\n> "
-    ).strip()
+    question = input("请输入经营分析问题：\n> ").strip()
 
     if not question:
-
-        question = (
-            "最近30天耳机品类GMV是多少？"
-        )
+        question = "最近30天耳机品类GMV是多少？"
 
     try:
-
-        result = run_text_to_sql(
-            question
-        )
+        result = run_text_to_sql(question)
 
     except UnsupportedQuestionError as exc:
+        print("\n该问题暂不支持：")
 
-        print(
-            "\n该问题暂不支持："
-        )
-
-        print(
-            exc
-        )
+        print(exc)
 
         return
 
     except TextToSQLFailed as exc:
+        print("\nText-to-SQL失败：")
 
-        print(
-            "\nText-to-SQL失败："
-        )
-
-        print(
-            exc
-        )
+        print(exc)
 
         return
 
-    print(
-        "\n===== Query Plan ====="
-    )
+    print("\n===== Query Plan =====")
 
     for index, step in enumerate(
         result.query_plan,
         start=1,
     ):
+        print(f"{index}. {step}")
 
-        print(
-            f"{index}. {step}"
-        )
+    print("\n===== SQL =====")
 
-    print(
-        "\n===== SQL ====="
-    )
+    print(result.sql)
 
-    print(
-        result.sql
-    )
-
-    print(
-        "\n===== Database Result ====="
-    )
+    print("\n===== Database Result =====")
 
     for row in result.rows:
+        print(row)
 
-        print(
-            row
-        )
-
-    print(
-        "\n===== Attempts ====="
-    )
+    print("\n===== Attempts =====")
 
     for attempt in result.attempts:
+        status = "FAILED" if attempt.error else "SUCCESS"
 
-        status = (
-            "FAILED"
-            if attempt.error
-            else "SUCCESS"
-        )
-
-        print(
-            f"Attempt "
-            f"{attempt.attempt}: "
-            f"{status}"
-        )
+        print(f"Attempt {attempt.attempt}: {status}")
 
         if attempt.error:
+            print(f"  Error: {attempt.error}")
 
-            print(
-                f"  Error: "
-                f"{attempt.error}"
-            )
+    print("\n===== Final Answer =====")
 
-    print(
-        "\n===== Final Answer ====="
-    )
-
-    print(
-        result.answer
-    )
+    print(result.answer)
 
 
 if __name__ == "__main__":

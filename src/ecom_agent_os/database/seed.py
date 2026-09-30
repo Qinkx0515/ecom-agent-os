@@ -20,7 +20,6 @@ from ecom_agent_os.database.models import (
 )
 from ecom_agent_os.database.session import SessionLocal
 
-
 random.seed(42)
 
 
@@ -54,7 +53,6 @@ def create_users(session):
     now = datetime.now(timezone.utc)
 
     for i in range(1, NUM_USERS + 1):
-
         user = User(
             email=f"user{i}@example.com",
             created_at=now,
@@ -75,16 +73,12 @@ def create_products(session):
     product_index = 1
 
     for category in CATEGORIES:
-
-        low_price, high_price = (
-            CATEGORY_PRICE_RANGE[category]
-        )
+        low_price, high_price = CATEGORY_PRICE_RANGE[category]
 
         for i in range(
             1,
             PRODUCTS_PER_CATEGORY + 1,
         ):
-
             price = Decimal(
                 str(
                     round(
@@ -139,18 +133,13 @@ def get_business_multiplier(
     end_date: date,
 ):
 
-    days_from_end = (
-        end_date - current_date
-    ).days
+    days_from_end = (end_date - current_date).days
 
     traffic_multiplier = 1.0
     conversion_multiplier = 1.0
     refund_probability = 0.04
 
-    if (
-        category == "耳机"
-        and days_from_end < 30
-    ):
+    if category == "耳机" and days_from_end < 30:
         traffic_multiplier = 0.80
         conversion_multiplier = 0.78
         refund_probability = 0.10
@@ -170,24 +159,16 @@ def create_business_data(
 
     end_date = date.today()
 
-    start_date = (
-        end_date
-        - timedelta(days=NUM_DAYS - 1)
-    )
+    start_date = end_date - timedelta(days=NUM_DAYS - 1)
 
     order_count = 0
     refund_count = 0
     traffic_count = 0
 
     for day_offset in range(NUM_DAYS):
-
-        current_date = (
-            start_date
-            + timedelta(days=day_offset)
-        )
+        current_date = start_date + timedelta(days=day_offset)
 
         for product in products:
-
             (
                 traffic_multiplier,
                 conversion_multiplier,
@@ -205,10 +186,7 @@ def create_business_data(
 
             visitors = max(
                 1,
-                int(
-                    base_visitors
-                    * traffic_multiplier
-                ),
+                int(base_visitors * traffic_multiplier),
             )
 
             impressions = int(
@@ -219,24 +197,16 @@ def create_business_data(
                 )
             )
 
-            base_conversion_rate = (
-                random.uniform(
-                    0.012,
-                    0.035,
-                )
+            base_conversion_rate = random.uniform(
+                0.012,
+                0.035,
             )
 
-            conversion_rate = (
-                base_conversion_rate
-                * conversion_multiplier
-            )
+            conversion_rate = base_conversion_rate * conversion_multiplier
 
             conversions = max(
                 0,
-                round(
-                    visitors
-                    * conversion_rate
-                ),
+                round(visitors * conversion_rate),
             )
 
             add_to_cart = max(
@@ -264,7 +234,6 @@ def create_business_data(
             traffic_count += 1
 
             for _ in range(conversions):
-
                 user = random.choice(users)
 
                 quantity = random.choices(
@@ -275,10 +244,7 @@ def create_business_data(
 
                 unit_price = product.price
 
-                total_amount = (
-                    unit_price
-                    * quantity
-                )
+                total_amount = unit_price * quantity
 
                 order_datetime = datetime.combine(
                     current_date,
@@ -317,28 +283,15 @@ def create_business_data(
 
                 order_count += 1
 
-                if (
-                    random.random()
-                    < refund_probability
-                ):
-
-                    refund_created = (
-                        order_datetime
-                        + timedelta(
-                            days=random.randint(
-                                1,
-                                7,
-                            )
+                if random.random() < refund_probability:
+                    refund_created = order_datetime + timedelta(
+                        days=random.randint(
+                            1,
+                            7,
                         )
                     )
 
-                    if (
-                        refund_created
-                        <= datetime.now(
-                            timezone.utc
-                        )
-                    ):
-
+                    if refund_created <= datetime.now(timezone.utc):
                         refund = Refund(
                             order_item_id=item.id,
                             refund_amount=total_amount,
@@ -360,11 +313,7 @@ def create_business_data(
                         refund_count += 1
 
         if day_offset % 10 == 0:
-            print(
-                f"Generated day "
-                f"{day_offset + 1}/"
-                f"{NUM_DAYS}"
-            )
+            print(f"Generated day {day_offset + 1}/{NUM_DAYS}")
 
     return {
         "orders": order_count,
@@ -376,40 +325,24 @@ def create_business_data(
 def main():
 
     with SessionLocal() as session:
-
-        existing_product = session.scalar(
-            select(Product.id).limit(1)
-        )
+        existing_product = session.scalar(select(Product.id).limit(1))
 
         if existing_product is not None:
+            print("Database already contains data.")
 
-            print(
-                "Database already contains data."
-            )
-
-            print(
-                "Seed cancelled to avoid "
-                "duplicate records."
-            )
+            print("Seed cancelled to avoid duplicate records.")
 
             return
 
         print("Creating users...")
 
-        users = create_users(
-            session
-        )
+        users = create_users(session)
 
         print("Creating products...")
 
-        products = create_products(
-            session
-        )
+        products = create_products(session)
 
-        print(
-            "Creating traffic, orders "
-            "and refunds..."
-        )
+        print("Creating traffic, orders and refunds...")
 
         stats = create_business_data(
             session,
@@ -421,26 +354,15 @@ def main():
 
         print("\nSeed completed.")
 
-        print(
-            f"Users: {len(users)}"
-        )
+        print(f"Users: {len(users)}")
 
-        print(
-            f"Products: {len(products)}"
-        )
+        print(f"Products: {len(products)}")
 
-        print(
-            f"Traffic rows: "
-            f"{stats['traffic']}"
-        )
+        print(f"Traffic rows: {stats['traffic']}")
 
-        print(
-            f"Orders: {stats['orders']}"
-        )
+        print(f"Orders: {stats['orders']}")
 
-        print(
-            f"Refunds: {stats['refunds']}"
-        )
+        print(f"Refunds: {stats['refunds']}")
 
 
 if __name__ == "__main__":

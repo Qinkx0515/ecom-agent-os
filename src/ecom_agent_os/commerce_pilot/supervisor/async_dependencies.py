@@ -22,24 +22,11 @@ from ecom_agent_os.commerce_pilot.workflow.async_dependencies import (
     frozen=True,
 )
 class AsyncSupervisorDependencies:
-
     request_router: Callable[
         [str],
-        Awaitable[
-            SupervisorDecision
-        ],
-    ] = (
-        async_route_request
-    )
+        Awaitable[SupervisorDecision],
+    ] = async_route_request
 
+    analytics_deps: AsyncCommerceDependencies | None = None
 
-    analytics_deps: (
-        AsyncCommerceDependencies
-        | None
-    ) = None
-
-
-    action_deps: (
-        AsyncActionDependencies
-        | None
-    ) = None
+    action_deps: AsyncActionDependencies | None = None

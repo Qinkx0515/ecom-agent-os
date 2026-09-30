@@ -20,40 +20,24 @@ def test_valid_select():
 
     assert result.is_safe
 
-    assert (
-        "products"
-        in result.tables
-    )
+    assert "products" in result.tables
 
 
 def test_delete_is_blocked():
 
-    with pytest.raises(
-        SQLValidationError
-    ):
-
-        validate_sql(
-            "DELETE FROM orders"
-        )
+    with pytest.raises(SQLValidationError):
+        validate_sql("DELETE FROM orders")
 
 
 def test_drop_is_blocked():
 
-    with pytest.raises(
-        SQLValidationError
-    ):
-
-        validate_sql(
-            "DROP TABLE products"
-        )
+    with pytest.raises(SQLValidationError):
+        validate_sql("DROP TABLE products")
 
 
 def test_multiple_statements_blocked():
 
-    with pytest.raises(
-        SQLValidationError
-    ):
-
+    with pytest.raises(SQLValidationError):
         validate_sql(
             """
             SELECT *
@@ -66,10 +50,7 @@ def test_multiple_statements_blocked():
 
 def test_unknown_table_blocked():
 
-    with pytest.raises(
-        SQLValidationError
-    ):
-
+    with pytest.raises(SQLValidationError):
         validate_sql(
             """
             SELECT *
@@ -94,7 +75,4 @@ def test_cte_is_allowed():
 
     assert result.is_safe
 
-    assert (
-        result.tables
-        == {"orders"}
-    )
+    assert result.tables == {"orders"}

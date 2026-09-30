@@ -8,7 +8,6 @@ from ecom_agent_os.database.config import (
     DATABASE_URL,
 )
 
-
 async_engine = create_async_engine(
     DATABASE_URL,
     pool_pre_ping=True,

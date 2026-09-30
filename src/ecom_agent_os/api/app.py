@@ -23,10 +23,7 @@ from ecom_agent_os.api.schemas import (
 
 app = FastAPI(
     title="CommercePilot API",
-    description=(
-        "Production-oriented "
-        "e-commerce Multi-Agent API"
-    ),
+    description=("Production-oriented e-commerce Multi-Agent API"),
     version="0.9.0",
 )
 
@@ -43,6 +40,7 @@ def health():
         version="0.9.0",
     )
 
+
 @app.post(
     "/api/v1/chat/stream",
     response_class=EventSourceResponse,
@@ -51,10 +49,7 @@ def chat_stream(
     body: ChatRequest,
 ) -> Iterable[ServerSentEvent]:
 
-    for event in stream_new_request(
-        body.request
-    ):
-
+    for event in stream_new_request(body.request):
         yield event.to_sse()
 
 
@@ -66,20 +61,11 @@ def approve_stream(
     body: ApprovalRequest,
 ) -> Iterable[ServerSentEvent]:
 
-    for event in (
-        stream_resume_request(
-            thread_id=(
-                body.thread_id
-            ),
-            decision=(
-                body.decision
-            ),
-            comment=(
-                body.comment
-            ),
-        )
+    for event in stream_resume_request(
+        thread_id=(body.thread_id),
+        decision=(body.decision),
+        comment=(body.comment),
     ):
-
         yield event.to_sse()
 
 
@@ -92,21 +78,12 @@ def thread_status(
 ):
 
     try:
-
-        result = (
-            get_thread_summary(
-                thread_id
-            )
-        )
+        result = get_thread_summary(thread_id)
 
     except Exception as exc:
-
         raise HTTPException(
             status_code=500,
             detail=str(exc),
         ) from exc
 
-
-    return ThreadResponse(
-        **result
-    )
+    return ThreadResponse(**result)

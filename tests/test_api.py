@@ -5,40 +5,24 @@ from fastapi.testclient import (
 from ecom_agent_os.api.app import (
     app,
 )
-
-
-client = TestClient(
-    app
+from ecom_agent_os.api.events import (
+    AgentEvent,
 )
+
+client = TestClient(app)
 
 
 def test_health():
 
-    response = client.get(
-        "/health"
-    )
+    response = client.get("/health")
 
-    assert (
-        response.status_code
-        == 200
-    )
+    assert response.status_code == 200
 
     data = response.json()
 
-    assert (
-        data["status"]
-        == "ok"
-    )
+    assert data["status"] == "ok"
 
-    assert (
-        data["service"]
-        == "CommercePilot"
-    )
-
-
-from ecom_agent_os.api.events import (
-    AgentEvent,
-)
+    assert data["service"] == "CommercePilot"
 
 
 def test_agent_event_creation():
@@ -46,20 +30,11 @@ def test_agent_event_creation():
     event = AgentEvent(
         event="started",
         event_id="thread-1:1",
-        data={
-            "thread_id":
-                "thread-1"
-        },
+        data={"thread_id": "thread-1"},
     )
 
     sse = event.to_sse()
 
-    assert (
-        sse.event
-        == "started"
-    )
+    assert sse.event == "started"
 
-    assert (
-        sse.id
-        == "thread-1:1"
-    )
+    assert sse.id == "thread-1:1"

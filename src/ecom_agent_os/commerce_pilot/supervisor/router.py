@@ -1,5 +1,6 @@
 import json
 
+from langfuse import observe
 from pydantic import ValidationError
 
 from ecom_agent_os.commerce_pilot.llm.client import (
@@ -9,11 +10,9 @@ from ecom_agent_os.commerce_pilot.llm.client import (
 from ecom_agent_os.commerce_pilot.supervisor.models import (
     SupervisorDecision,
 )
-from langfuse import observe
 
-class SupervisorRoutingError(
-    RuntimeError
-):
+
+class SupervisorRoutingError(RuntimeError):
     pass
 
 
@@ -65,9 +64,7 @@ Required format:
 """
 
 
-@observe(
-    name="supervisor.route"
-)
+@observe(name="supervisor.route")
 def route_request(
     request: str,
 ) -> SupervisorDecision:
@@ -75,74 +72,38 @@ def route_request(
     client = get_llm_client()
 
     try:
-
-        response = (
-            client.chat.completions.create(
-                model=get_model_name(),
-                messages=[
-                    {
-                        "role": "system",
-                        "content":
-                            SUPERVISOR_SYSTEM_PROMPT,
-                    },
-                    {
-                        "role": "user",
-                        "content":
-                            request,
-                    },
-                ],
-                response_format={
-                    "type":
-                        "json_object"
+        response = client.chat.completions.create(
+            model=get_model_name(),
+            messages=[
+                {
+                    "role": "system",
+                    "content": SUPERVISOR_SYSTEM_PROMPT,
                 },
-                temperature=0,
-                max_tokens=300,
-            )
+                {
+                    "role": "user",
+                    "content": request,
+                },
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+            max_tokens=300,
         )
 
     except Exception as exc:
+        raise SupervisorRoutingError(f"Supervisor routing failed: {exc}") from exc
 
-        raise SupervisorRoutingError(
-            f"Supervisor routing "
-            f"failed: {exc}"
-        ) from exc
-
-
-    content = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
+    content = response.choices[0].message.content
 
     if not content:
-
-        raise SupervisorRoutingError(
-            "Supervisor returned "
-            "empty content."
-        )
-
+        raise SupervisorRoutingError("Supervisor returned empty content.")
 
     try:
+        data = json.loads(content)
 
-        data = json.loads(
-            content
-        )
-
-        return (
-            SupervisorDecision
-            .model_validate(
-                data
-            )
-        )
+        return SupervisorDecision.model_validate(data)
 
     except (
         json.JSONDecodeError,
         ValidationError,
     ) as exc:
-
-        raise SupervisorRoutingError(
-            "Invalid supervisor "
-            f"output: {exc}"
-        ) from exc
+        raise SupervisorRoutingError(f"Invalid supervisor output: {exc}") from exc

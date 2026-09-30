@@ -17,14 +17,12 @@ def route_after_plan(
         "plan_ok",
         False,
     ):
-
         return "failed"
 
     if not state.get(
         "is_supported",
         False,
     ):
-
         return "unsupported"
 
     return "load_product"
@@ -37,13 +35,7 @@ def route_after_product(
     "failed",
 ]:
 
-    if (
-        state.get(
-            "status"
-        )
-        != "product_loaded"
-    ):
-
+    if state.get("status") != "product_loaded":
         return "failed"
 
     return "assess_risk"
@@ -56,13 +48,7 @@ def route_after_risk(
     "failed",
 ]:
 
-    if (
-        state.get(
-            "status"
-        )
-        != "risk_assessed"
-    ):
-
+    if state.get("status") != "risk_assessed":
         return "failed"
 
     return "human_approval"
@@ -75,13 +61,7 @@ def route_after_approval(
     "rejected",
 ]:
 
-    if (
-        state.get(
-            "approval_decision"
-        )
-        == "approve"
-    ):
-
+    if state.get("approval_decision") == "approve":
         return "execute_action"
 
     return "rejected"

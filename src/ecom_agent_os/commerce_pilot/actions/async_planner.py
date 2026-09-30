@@ -16,100 +16,44 @@ from ecom_agent_os.commerce_pilot.llm.async_client import (
 )
 
 
-@observe(
-    name="action.plan"
-)
+@observe(name="action.plan")
 async def async_generate_action_plan(
     user_request: str,
 ) -> ActionPlan:
 
-    client = (
-        get_async_llm_client()
-    )
-
+    client = get_async_llm_client()
 
     try:
-
-        response = await (
-            client
-            .chat
-            .completions
-            .create(
-                model=(
-                    get_async_model_name()
-                ),
-
-                messages=[
-                    {
-                        "role":
-                            "system",
-
-                        "content":
-                            ACTION_SYSTEM_PROMPT,
-                    },
-                    {
-                        "role":
-                            "user",
-
-                        "content":
-                            user_request,
-                    },
-                ],
-
-                response_format={
-                    "type":
-                        "json_object"
+        response = await client.chat.completions.create(
+            model=(get_async_model_name()),
+            messages=[
+                {
+                    "role": "system",
+                    "content": ACTION_SYSTEM_PROMPT,
                 },
-
-                temperature=0,
-
-                max_tokens=500,
-            )
+                {
+                    "role": "user",
+                    "content": user_request,
+                },
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+            max_tokens=500,
         )
-
 
     except Exception as exc:
+        raise ActionPlanningError(f"Action planning failed: {exc}") from exc
 
-        raise ActionPlanningError(
-            "Action planning "
-            f"failed: {exc}"
-        ) from exc
-
-
-    content = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
+    content = response.choices[0].message.content
 
     if not content:
-
-        raise ActionPlanningError(
-            "Action planner returned "
-            "empty content."
-        )
-
+        raise ActionPlanningError("Action planner returned empty content.")
 
     try:
-
-        return (
-            ActionPlan
-            .model_validate(
-                json.loads(
-                    content
-                )
-            )
-        )
-
+        return ActionPlan.model_validate(json.loads(content))
 
     except (
         json.JSONDecodeError,
         ValidationError,
     ) as exc:
-
-        raise ActionPlanningError(
-            "Invalid action plan: "
-            f"{exc}"
-        ) from exc
+        raise ActionPlanningError(f"Invalid action plan: {exc}") from exc

@@ -1,44 +1,41 @@
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI
-
-from ecom_agent_os.api.checkpoint_runtime import (
-    create_checkpoint_pool,
-    create_postgres_checkpointer,
-)
-from ecom_agent_os.commerce_pilot.supervisor.async_builder import (
-    build_async_supervisor_graph,
-)
 from collections.abc import (
     AsyncIterable,
 )
+from contextlib import asynccontextmanager
 
 from fastapi import (
+    FastAPI,
     Request,
 )
-
 from fastapi.sse import (
     EventSourceResponse,
     ServerSentEvent,
 )
 
+from ecom_agent_os.api.checkpoint_runtime import (
+    create_checkpoint_pool,
+    create_postgres_checkpointer,
+)
 from ecom_agent_os.api.runtime_v10 import (
     get_thread_summary_v10,
     stream_new_request_v10,
     stream_resume_request_v10,
 )
-
 from ecom_agent_os.api.schemas import (
     ApprovalRequest,
     ChatRequest,
     ThreadResponse,
 )
-from ecom_agent_os.database.async_session import (
-    async_engine,
-)
 from ecom_agent_os.commerce_pilot.llm.async_client import (
     close_async_llm_client,
 )
+from ecom_agent_os.commerce_pilot.supervisor.async_builder import (
+    build_async_supervisor_graph,
+)
+from ecom_agent_os.database.async_session import (
+    async_engine,
+)
+
 
 @asynccontextmanager
 async def lifespan(
@@ -49,35 +46,22 @@ async def lifespan(
 
     await pool.open()
 
-    checkpointer = (
-        create_postgres_checkpointer(
-            pool
-        )
-    )
+    checkpointer = create_postgres_checkpointer(pool)
 
     await checkpointer.setup()
 
-    graph = build_async_supervisor_graph(
-        checkpointer=checkpointer
-    )
+    graph = build_async_supervisor_graph(checkpointer=checkpointer)
 
     app.state.checkpoint_pool = pool
 
-    app.state.checkpointer = (
-        checkpointer
-    )
+    app.state.checkpointer = checkpointer
 
-    app.state.commerce_graph = (
-        graph
-    )
+    app.state.commerce_graph = graph
 
     try:
-
         yield
 
-
     finally:
-
         await close_async_llm_client()
 
         await async_engine.dispose()
@@ -87,13 +71,11 @@ async def lifespan(
 
 app = FastAPI(
     title="CommercePilot API",
-    description=(
-        "Production-oriented "
-        "e-commerce Multi-Agent API"
-    ),
+    description=("Production-oriented e-commerce Multi-Agent API"),
     version="1.0.0",
     lifespan=lifespan,
 )
+
 
 @app.get("/health")
 async def health():
@@ -102,9 +84,9 @@ async def health():
         "status": "ok",
         "service": "CommercePilot",
         "version": "1.0.0",
-        "checkpoint_backend":
-            "postgresql",
+        "checkpoint_backend": "postgresql",
     }
+
 
 @app.post(
     "/api/v1/chat/stream",
@@ -113,24 +95,16 @@ async def health():
 async def chat_stream(
     body: ChatRequest,
     request: Request,
-) -> AsyncIterable[
-    ServerSentEvent
-]:
+) -> AsyncIterable[ServerSentEvent]:
 
-    graph = (
-        request.app.state
-        .commerce_graph
-    )
+    graph = request.app.state.commerce_graph
 
-
-    async for event in (
-        stream_new_request_v10(
-            graph,
-            body.request,
-        )
+    async for event in stream_new_request_v10(
+        graph,
+        body.request,
     ):
-
         yield event.to_sse()
+
 
 @app.post(
     "/api/v1/approve/stream",
@@ -139,35 +113,18 @@ async def chat_stream(
 async def approve_stream(
     body: ApprovalRequest,
     request: Request,
-) -> AsyncIterable[
-    ServerSentEvent
-]:
+) -> AsyncIterable[ServerSentEvent]:
 
-    graph = (
-        request.app.state
-        .commerce_graph
-    )
+    graph = request.app.state.commerce_graph
 
-
-    async for event in (
-        stream_resume_request_v10(
-            graph=graph,
-
-            thread_id=(
-                body.thread_id
-            ),
-
-            decision=(
-                body.decision
-            ),
-
-            comment=(
-                body.comment
-            ),
-        )
+    async for event in stream_resume_request_v10(
+        graph=graph,
+        thread_id=(body.thread_id),
+        decision=(body.decision),
+        comment=(body.comment),
     ):
-
         yield event.to_sse()
+
 
 @app.get(
     "/api/v1/threads/{thread_id}",
@@ -178,20 +135,11 @@ async def thread_status(
     request: Request,
 ):
 
-    graph = (
-        request.app.state
-        .commerce_graph
+    graph = request.app.state.commerce_graph
+
+    result = await get_thread_summary_v10(
+        graph,
+        thread_id,
     )
 
-
-    result = (
-        await get_thread_summary_v10(
-            graph,
-            thread_id,
-        )
-    )
-
-
-    return ThreadResponse(
-        **result
-    )
+    return ThreadResponse(**result)

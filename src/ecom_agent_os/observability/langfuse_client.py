@@ -1,5 +1,6 @@
-from langfuse import get_client
 from dotenv import load_dotenv
+from langfuse import get_client
+
 load_dotenv()
 
 
@@ -23,12 +24,6 @@ def flush_langfuse():
 
 
 if __name__ == "__main__":
+    success = check_langfuse_connection()
 
-    success = (
-        check_langfuse_connection()
-    )
-
-    print(
-        f"Langfuse connected: "
-        f"{success}"
-    )
+    print(f"Langfuse connected: {success}")

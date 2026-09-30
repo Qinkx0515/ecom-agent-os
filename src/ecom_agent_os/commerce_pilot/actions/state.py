@@ -8,11 +8,9 @@ class ActionState(
     TypedDict,
     total=False,
 ):
-
     user_request: str
 
     action_id: str
-
 
     # ===== Plan =====
 
@@ -30,7 +28,6 @@ class ActionState(
 
     unsupported_reason: str | None
 
-
     # ===== Product =====
 
     product_id: int
@@ -42,7 +39,6 @@ class ActionState(
     old_price: str
 
     stock: int
-
 
     # ===== Risk =====
 
@@ -56,7 +52,6 @@ class ActionState(
 
     approval_required: bool
 
-
     # ===== Approval =====
 
     approval_decision: (
@@ -68,7 +63,6 @@ class ActionState(
     )
 
     approval_comment: str | None
-
 
     # ===== Execution =====
 

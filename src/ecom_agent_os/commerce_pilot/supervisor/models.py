@@ -7,7 +7,6 @@ from pydantic import (
 
 
 class SupervisorDecision(BaseModel):
-
     route: Literal[
         "analytics",
         "action",

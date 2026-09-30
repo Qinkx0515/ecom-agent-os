@@ -18,9 +18,8 @@ from ecom_agent_os.commerce_pilot.text_to_sql.prompts import (
     build_sql_prompt,
 )
 
-@observe(
-    name="text_to_sql.generate"
-)
+
+@observe(name="text_to_sql.generate")
 async def async_generate_sql(
     question: str,
     schema: str,
@@ -28,10 +27,7 @@ async def async_generate_sql(
     error_message: str | None = None,
 ) -> SQLGeneration:
 
-    client = (
-        get_async_llm_client()
-    )
-
+    client = get_async_llm_client()
 
     prompt = build_sql_prompt(
         question=question,
@@ -40,91 +36,41 @@ async def async_generate_sql(
         error_message=error_message,
     )
 
-
     try:
-
-        response = await (
-            client
-            .chat
-            .completions
-            .create(
-                model=(
-                    get_async_model_name()
-                ),
-
-                messages=[
-                    {
-                        "role":
-                            "system",
-
-                        "content":
-                            SQL_SYSTEM_PROMPT,
-                    },
-                    {
-                        "role":
-                            "user",
-
-                        "content":
-                            prompt,
-                    },
-                ],
-
-                response_format={
-                    "type":
-                        "json_object"
+        response = await client.chat.completions.create(
+            model=(get_async_model_name()),
+            messages=[
+                {
+                    "role": "system",
+                    "content": SQL_SYSTEM_PROMPT,
                 },
-
-                temperature=0,
-
-                max_tokens=1200,
-            )
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+            max_tokens=1200,
         )
-
 
     except Exception as exc:
+        raise LLMGenerationError(f"LLM request failed: {exc}") from exc
 
-        raise LLMGenerationError(
-            "LLM request "
-            f"failed: {exc}"
-        ) from exc
-
-
-    content = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
+    content = response.choices[0].message.content
 
     if not content:
-
-        raise LLMGenerationError(
-            "LLM returned "
-            "empty content."
-        )
-
+        raise LLMGenerationError("LLM returned empty content.")
 
     try:
+        data = json.loads(content)
 
-        data = json.loads(
-            content
-        )
-
-        return (
-            SQLGeneration
-            .model_validate(
-                data
-            )
-        )
-
+        return SQLGeneration.model_validate(data)
 
     except (
         json.JSONDecodeError,
         ValidationError,
     ) as exc:
-
         raise LLMGenerationError(
-            "LLM returned invalid "
-            f"structured output: {exc}"
+            f"LLM returned invalid structured output: {exc}"
         ) from exc

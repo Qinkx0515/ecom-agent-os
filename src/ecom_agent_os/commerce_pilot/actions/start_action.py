@@ -11,67 +11,35 @@ from ecom_agent_os.commerce_pilot.workflow.persistence import (
 
 def main():
 
-    request = input(
-        "\n请输入业务操作：\n> "
-    ).strip()
+    request = input("\n请输入业务操作：\n> ").strip()
 
     if not request:
+        request = "把 SKU-0001 的价格调整为299元"
 
-        request = (
-            "把 SKU-0001 "
-            "的价格调整为299元"
-        )
+    thread_id = f"action-{uuid4()}"
 
-
-    thread_id = (
-        f"action-{uuid4()}"
-    )
-
-
-    config = {
-        "configurable": {
-            "thread_id":
-                thread_id
-        }
-    }
-
+    config = {"configurable": {"thread_id": thread_id}}
 
     with create_sqlite_checkpointer() as saver:
-
-        graph = build_action_graph(
-            checkpointer=saver
-        )
-
+        graph = build_action_graph(checkpointer=saver)
 
         result = graph.invoke(
             {
-                "user_request":
-                    request,
+                "user_request": request,
             },
             config=config,
             durability="sync",
             version="v2",
         )
 
+        print("\n===== Thread ID =====")
 
-        print(
-            "\n===== Thread ID ====="
-        )
-
-        print(
-            thread_id
-        )
-
+        print(thread_id)
 
         if result.interrupts:
+            interrupt_info = result.interrupts[0]
 
-            interrupt_info = (
-                result.interrupts[0]
-            )
-
-            print(
-                "\n===== APPROVAL REQUIRED ====="
-            )
+            print("\n===== APPROVAL REQUIRED =====")
 
             print(
                 json.dumps(
@@ -81,32 +49,19 @@ def main():
                 )
             )
 
-            print(
-                "\nInterrupt ID:"
-            )
+            print("\nInterrupt ID:")
 
-            print(
-                interrupt_info.id
-            )
+            print(interrupt_info.id)
 
-            print(
-                "\nGraph 已暂停。"
-            )
+            print("\nGraph 已暂停。")
 
-            print(
-                "请保存上面的 thread_id。"
-            )
+            print("请保存上面的 thread_id。")
 
             return
 
+        print("\n===== Result =====")
 
-        print(
-            "\n===== Result ====="
-        )
-
-        print(
-            result.value
-        )
+        print(result.value)
 
 
 if __name__ == "__main__":
