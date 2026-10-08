@@ -36,10 +36,12 @@ def get_async_llm_client() -> AsyncOpenAI:
 
 def get_async_model_name() -> str:
 
-    return os.getenv(
-        "DEEPSEEK_MODEL",
-        "deepseek-flash",
-    )
+    model = os.getenv("DEEPSEEK_MODEL")
+
+    if not model:
+        raise RuntimeError("DEEPSEEK_MODEL is not configured.")
+
+    return model
 
 
 async def close_async_llm_client():

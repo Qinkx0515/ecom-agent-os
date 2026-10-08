@@ -30,7 +30,9 @@ def get_llm_client() -> OpenAI:
 
 def get_model_name() -> str:
 
-    return os.getenv(
-        "DEEPSEEK_MODEL",
-        "deepseek-flash",
-    )
+    model = os.getenv("DEEPSEEK_MODEL")
+
+    if not model:
+        raise RuntimeError("DEEPSEEK_MODEL is not configured.")
+
+    return model
